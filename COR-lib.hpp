@@ -545,7 +545,7 @@ void cor::genetic::tournament()
 }
 
 //performs uniform crossover reproduction on the chromosomes
-void cor::genetic::orgy()
+void cor::genetic::reproduction()
 {
 	int k = 0;
 	for (int i=n_repro; i<n_repro+n_repro/2; ++i)
@@ -595,7 +595,7 @@ void cor::genetic::rankChromosomes()
 }
 
 //performs mutations on the chromosome population
-void cor::genetic::radioactive_spider_semen()
+void cor::genetic::mutate()
 {
 	int mmax = (int) (n_gpool*nx*nx*64*pm+1);
 	std::vector<std::vector<std::bitset<64*nx> > > bin = chromosomes;
