@@ -233,5 +233,5 @@ The implementation of the genetic algorithm used in COR Predictor is built off o
 
 Contact 
 
-Contact me at <https://github.com/schroedingersferret>.
+Contact me at <https://github.com/SchroedingersFerret>.
 
