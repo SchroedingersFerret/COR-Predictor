@@ -2,7 +2,7 @@ COR Predictor version 1.0
 =========================
 By: J. Ball (SchroedingersFerret)
 
-##README
+#README
 
 COR Predictor is a command line tool for developing a function  that approximates the coefficient of restitution (COR) of two colliding bodies from their physical properties, _without_ knowing the final velocities. 
 
@@ -10,11 +10,11 @@ COR Predictor does this using a simple supervised learning process. The program 
 
 ---
 
-##Files
+#Files
 
 In addition to the executable, COR Predictor makes use of the following files:
  
-`cor_x.csv`:
+#`cor_x.csv`:
 
 The file `cor_x.csv` is an n x 7 table containing the independent variables for n training datapoints. The variables represent two sets of four different physical quantities, one for each of two colliding objects. 
 
@@ -36,26 +36,26 @@ The second quantities are stored in `x[i][2]` and `x[i][3]` and are the Young's 
 `x[i][6]` is the magnitude of the objects' relative velocity.
 
 
-`cor_y.csv`:
+#`cor_y.csv`:
 
 The file `cor_y.csv` is an n x 1 table containing the dependent variables for n training datapoints. Each variable is the COR for the collision represented by each datapoint.
 
 
-`settings.txt`:
+#`settings.txt`:
 
 File `settings.txt` contains the settings used in the genetic searching algorithm used by the learning program. The various entries and their functions are covered in the section titled "Using COR Predictor".
 
-`cor_parameters.csv`:
+#`cor_parameters.csv`:
 
 This file is generated at the end of optimization and contains the best-fitting parameter configuration. It can be used at startup to reduce the time needed for further optimization.
 
 ---
 
-##Building COR Predictor
+#Building COR Predictor
 
 COR Predictor is built by using CMake to generate a makefile which can be used to build the executables. The executables need to be moved to the parent folder with the other files before they can be run.
 
-###Gnu+Linux
+* Gnu+Linux
 
 In the terminal, navigate to the parent directory `~/COR-Predictor-1.0`. Create the build folder with the command
 
@@ -81,7 +81,7 @@ Run COR Predictor by navigating back to the parent directory and entering
 
 `~/COR-Predictor-1.0 $ ./COR-Predictor`
 
-###Windows
+* Windows
 
 In the command line, enter the command
 
@@ -94,7 +94,7 @@ No configuration is necessary. Simply press 'Generate' to create the makefile.
 
 ---
 
-##Using COR Predictor
+#Using COR Predictor
 
 COR Predictor uses a genetic algorithm to fit a set of parameters to the training data. The genetic algorithm starts by creating an initial set of parameter configurations and selecting a percentage of them that best fit the training data as a gene pool. These configurations are encoded as 2-d bit arrays. 
 
@@ -104,7 +104,7 @@ A percentage of all the bits in the entire population is then selected to be mut
 
 After mutation occurs, the iterative process starts over and repeats until an error tolerance specified by the user is reached. The process of selecting the best-fitting configurations combined with scrambling the bits using reproduction and mutation efficiently searches the objective function space for an optimal configuration.
 
-###Settings
+#Settings
 
 When COR Predictor is run, the program first reads the file `settings.txt` to obtain the settings used to initiate optimization. These settings strongly determine the successfulness of optimization. They must be listed in the file with the syntax
 
@@ -136,11 +136,11 @@ The `mutation_rate` setting determines the percentage of bits accross the entire
 
 This is the least squares error value at which iteration will conclude. It is better to be conservative (not too small) with this value, as there is no other way to stop the iterative process prematurely at this point. It is better to perform a convergence in multiple steps to avoid the algorithm stalling without reaching the required tolerance. If that happens, the only recourse as of this release is to close out the terminal and restart the program.
 
-###Adding Datapoints
+#Adding Datapoints
 
 COR Predictor reads training datapoints from the files `cor_x.csv` and `cor_y.csv`. To add a datapoint, simply open the files in a spread sheet and enter the data in the next row below the lowest entry in each file. 
 
-###Running COR Predictor
+#Running COR Predictor
 
 COR Predictor is run by entering the command 
 
@@ -154,7 +154,7 @@ Once the program enters the main loop, the program will display the least square
 
 Overall, the entire process should take no longer than several minutes for set of good-quality data with little noise. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster.
 
-###Troubleshooting
+#Troubleshooting
 
 * `settings.txt`/`cor_x.csv`/`cor_y.csv`/`cor_parameters.csv` was not found.
 
