@@ -1,0 +1,71 @@
+/*
+ * Restitution.hpp
+ *
+ *  Copyright 2019
+ *      J. Ball (SchroedingersFerret)
+ */
+
+//This file is part of COR-Predictor.
+//
+//   COR-Predictor is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   COR-Predictor is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef RESTITUTION_HPP_
+#define RESTITUTION_HPP_
+
+#include <vector>
+
+class Restitution
+{
+	private:
+		std::vector<std::vector<double> > parameters = 
+			 {{@P00@,@P01@,@P02@,@P03@,@P04@,@P05@,@P06@},
+			  {@P10@,@P11@,@P12@,@P13@,@P14@,@P15@,@P16@},
+			  {@P20@,@P21@,@P22@,@P23@,@P24@,@P25@,@P26@},
+			  {@P30@,@P31@,@P32@,@P33@,@P34@,@P35@,@P36@},
+			  {@P40@,@P41@,@P42@,@P43@,@P44@,@P45@,@P46@},
+			  {@P50@,@P51@,@P52@,@P53@,@P54@,@P55@,@P56@},
+			  {@P60@,@P61@,@P62@,@P63@,@P64@,@P65@,@P66@}};
+		double taylor(double x);
+	public:
+		double f(std::vector<double> x);
+};
+
+//returns the taylor approximation of x with coefficients from parameters[]
+double Restitution::taylor(double x)
+{
+	double sum;
+	for (int i=0; i<7; ++i)
+	{
+		double product = parameters[i];
+		for (int j=0; j<i; ++j)
+			product *= x;
+		sum += product;
+	}
+	return sum;
+}
+
+//returns the approximate COR with independent variables x[] and coefficients parameters[][]
+double Restitution::f(std::vector<double> x)
+{
+	double y = 3.1;
+	y *= taylor(x[0],parameters[0]);
+	y *= taylor(x[1],parameters[1]);
+	y /= taylor(x[2],parameters[2]);
+	y /= taylor(x[3],parameters[3]);
+	y /= taylor(x[4],parameters[4]);
+	y /= taylor(x[5],parameters[5]);
+	y /= taylor(x[6],parameters[6]);
+	return y;
+}
+#endif
