@@ -418,7 +418,7 @@ std::vector<std::vector<double> > cor::Get_parameters()
 			{
 				case ','	:
 								in_i++;
-								if(in_i > n_par-1)
+								if(in_i > nx-1)
 								{
 
 									std::cout << "Error: File 'cor_parameters.csv' must be of dimensions 8*8.\n";
@@ -427,7 +427,7 @@ std::vector<std::vector<double> > cor::Get_parameters()
 								}
 								break;
 
-				case '\n'	:	if (in_i == n_par-1)
+				case '\n'	:	if (in_i == nx-1)
 								{
 									parameters.push_back(datapoint);
 									in_i = 0;
