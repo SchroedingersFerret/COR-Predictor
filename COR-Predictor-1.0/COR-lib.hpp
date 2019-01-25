@@ -48,7 +48,7 @@ bool cor::rand_bool()
 double cor::taylor(double x, std::vector<double> parameters)
 {
 	double sum;
-	for (int i=0; i<n_par; ++i)
+	for (int i=0; i<nx; ++i)
 	{
 		double product = parameters[i];
 		for (int j=0; j<i; ++j)
