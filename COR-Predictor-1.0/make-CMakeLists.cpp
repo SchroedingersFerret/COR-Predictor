@@ -37,7 +37,7 @@ int main()
 	fout << "cmake_minimum_required (VERSION 3.1)\n";
 	fout << "project (Restitution)\n\n";
 	
-	for (int i=0; i<nx; ++i)
+	for (int i=0; i<n_par; ++i)
 	{
 		for (int j=0; j<nx; ++j)
 			fout << "set (P" << i << j << " " << parameters[i][j] << ")\n";
