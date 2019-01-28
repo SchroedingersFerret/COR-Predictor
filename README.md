@@ -25,7 +25,7 @@ The first quantity, stored in `x[i][0]` and `x[i][1]`, is the yield strength in 
 
 * Young's Modulus
 
-The second quantities are stored in `x[i][2]` and `x[i][3]` and are the Young's modulus in GPa of objects 1 and 2 respectively. 
+The second quantities are stored in `x[i][2]` and `x[i][3]` and are the Young's modulus in MPa of objects 1 and 2 respectively. 
 
 * Density:
 
