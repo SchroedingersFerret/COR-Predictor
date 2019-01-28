@@ -101,7 +101,7 @@ std::vector<std::bitset<64*nx> > cor::genetic::encode(std::vector<std::vector<do
 			double sum = parameters[i][j];
 			w[i][j*64] = 0;
 			if ((int)(0.5+sum)==1)
-				w[i][j*64] = 0;
+				w[i][j*64] = 1;
 			double d = 2.0;
 			for (int k=1; k<64; ++k)
 			{
