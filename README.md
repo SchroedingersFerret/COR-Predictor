@@ -57,29 +57,29 @@ COR Predictor is built by using CMake to generate a makefile which can be used t
 
 * Gnu+Linux
 
-In the terminal, navigate to the parent directory `~/COR-Predictor-1.0`. Create the build folder with the command
+In the terminal, navigate to the parent directory `~/COR-Predictor-master`. Create the build folder with the command
 
-`~/COR-Predictor-1.0 $ mkdir build`
+`~/COR-Predictor-master $ mkdir build`
 
 Next change to the build directory with the command
 
-`~/COR-Predictor-1.0 $ cd build`
+`~/COR-Predictor-master $ cd build`
 
 Run cmake with the command 
 
-`~/COR-Predictor-1.0/build $ cmake ..`
+`~/COR-Predictor-master/build $ cmake ..`
 
 and make the executable with 
 
-`~/COR-Predictor-1.0/build $ make`
+`~/COR-Predictor-master/build $ make`
 
 Two executable will be created in the build directory. Move them to the parent folder using a file manager or with
 
-`~/COR-Predictor-1.0/build $ mv COR-Predictor make-CMakeLists ~/COR-Predictor-1.0`
+`~/COR-Predictor-master/build $ mv COR-Predictor make-CMakeLists ~/COR-Predictor-1.0`
 
 Run COR Predictor by navigating back to the parent directory and entering
 
-`~/COR-Predictor-1.0 $ ./COR-Predictor`
+`~/COR-Predictor-master $ ./COR-Predictor`
 
 * Windows
 
@@ -144,7 +144,7 @@ Running COR Predictor
 
 COR Predictor is run by entering the command 
 
-`~/COR-Predictor-1.0 $ ./COR-Predictor`
+`~/COR-Predictor-master $ ./COR-Predictor`
 
 while in the parent directory. 
 
@@ -199,27 +199,27 @@ Once the parameters have been fitted using the learning program, a library conta
 
 First, run the executable `make-CMakeLists` by entering this command in the parent directory:
 
-`~/COR-Predictor-1.0 $ ./make-CMakeLists`
+`~/COR-Predictor-master $ ./make-CMakeLists`
 
 This will create a CMakeList file in the folder `function`. Navigate to this folder using 
 
-`~/COR-Predictor-1.0 $ cd function`
+`~/COR-Predictor-master $ cd function`
 
 Create a build folder using 
 
-`~/COR-Predictor-1.0/function $ mkdir build`
+`~/COR-Predictor-master/function $ mkdir build`
 
 Navigate to this folder:
 
-`~/COR-Predictor-1.0/function $ cd build`
+`~/COR-Predictor-master/function $ cd build`
 
 Run CMake using 
 
-`~/COR-Predictor-1.0/function/build $ cmake ..`
+`~/COR-Predictor-master/function/build $ cmake ..`
 
 and run the makefile:
 
-`~/COR-Predictor-1.0/function/build $ make`
+`~/COR-Predictor-master/function/build $ make`
 
 A library called `Restitution.hpp` will be configured using the new parameters and placed in the build folder.
 
@@ -233,5 +233,5 @@ The implementation of the genetic algorithm used in COR Predictor is built off o
 
 Contact 
 
-Contact me at <https://github.com/SchroedingersFerret>.
+Contact me at <jball10990@gmail.com>.
 
