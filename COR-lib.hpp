@@ -90,7 +90,7 @@ double cor::genetic::SumOfSquares(std::vector<double> residuals)
 	return sum;
 }
 
-//encodes the parameters into a binary array
+//encodes the parameters into an offset binary array
 std::vector<std::bitset<64*nx> > cor::genetic::encode(std::vector<std::vector<double> > parameters)
 {
 	std::vector<std::bitset<64*nx> > w(n_par);
@@ -99,11 +99,17 @@ std::vector<std::bitset<64*nx> > cor::genetic::encode(std::vector<std::vector<do
 		for (int j=0; j<nx; ++j)
 		{
 			double sum = parameters[i][j];
-			w[i][j*64] = 0;
+			w[i][j*64] = 1;
+			if (parameters[i][j] < 0)
+			{
+				w[i][j*64] = 0;
+				sum *= -1;
+			}
+			w[i][j*64+1] = 0;
 			if ((int)(0.5+sum)==1)
-				w[i][j*64] = 1;
+				w[i][j*64+1] = 1;
 			double d = 2.0;
-			for (int k=1; k<64; ++k)
+			for (int k=2; k<64; ++k)
 			{
 				if (w[i][j*64+k-1])
 					sum -= 1.0/d;
@@ -127,13 +133,15 @@ std::vector<std::vector<double> > cor::genetic::decode(std::vector<std::bitset<6
 		{
 			double d = 2.0;
 			double sum = 0;
-			for (int k=0; k<64; ++k)
+			for (int k=1; k<64; ++k)
 			{
 				if (w[i][j*64+k])
 					sum += 1.0/d;
 				d *= 2;
 			}
 			parameters[i][j] = sum + 1.0/d;
+			if (w[i][j*64])
+				parameters[i][j] *= -1;
 		}
 	}
 	return parameters;
