@@ -83,6 +83,10 @@ class cor
 				int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 				void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 				void shuffle(std::vector<int> &index);
+				double convergence(double x, std::vector<double> parameters);
+				double convergenceTest(std::vector<double> x, std::vector<std::vector<double> > parameters);
+				std::vector<double> nearbyPoint(std::vector<double> x);
+				double nearbyPointTest(std::vector<double> x, std::vector<std::vector<double> > parameters);
 			public:
 				std::vector<std::vector<double> > decode(std::vector<std::bitset<64*nx> > w);
 				double SumOfSquares(std::vector<double> residuals);
