@@ -72,12 +72,56 @@ double cor::f(std::vector<double> x, std::vector<std::vector<double> > parameter
 	return y;
 }
 
+//Performs a ratio test 
+double cor::genetic::convergence(double x, std::vector<double> parameters)
+{
+	return (parameters[7]/parameters[6])*x;
+}
+
+//Returns a modifier if a the product of the taylor series convergences is divergent
+double cor::genetic::convergenceTest(std::vector<double> x, std::vector<std::vector<double> > parameters)
+{
+	double r = 3.1;
+	r *= convergence(x[0],parameters[0]);
+	r *= convergence(x[1],parameters[0]);
+	r /= convergence(x[2],parameters[1]);
+	r /= convergence(x[3],parameters[1]);
+	r /= convergence(x[4],parameters[2]);
+	r /= convergence(x[5],parameters[2]);
+	r /= convergence(x[6],parameters[3]);
+	if (r*r > 1.f)
+		return r;
+	return 1.f;
+}
+
+//Returns a nearby point
+std::vector<double> cor::genetic::nearbyPoint(std::vector<double> x)
+{
+	std::vector<double> newx(nx);
+	for (int i=0; i<nx; ++i)
+	{
+		newx[i] = x[i]+x[i]*COR.NextRand()*0.01;
+	}
+	return newx;
+}
+
+//Returns a modifier if nearby points are not in the acceptible range for the COR
+double cor::genetic::nearbyPointTest(std::vector<double> x, std::vector<std::vector<double> > parameters)
+{
+	double y = COR.f(nearbyPoint(x),parameters);
+	if (y > 1.f)
+		return y;
+	if (y < 0)
+		return y - 1.f;
+	return 1.f;
+}
+
 //gets the residual of each datapoint
 std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, std::vector<std::vector<double> > parameters)
 {
 	std::vector<double> residuals(n_data);
 	for (int i=0; i<n_data; ++i)
-		residuals[i] = y[i]-COR.f(x[i],parameters);
+		residuals[i] = y[i]-COR.f(x[i],parameters)*convergenceTest(x[i],parameters)*nearbyPointTest(x[i],parameters);
 	return residuals;
 }
 
