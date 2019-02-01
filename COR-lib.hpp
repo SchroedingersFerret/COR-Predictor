@@ -100,7 +100,7 @@ std::vector<double> cor::genetic::nearbyPoint(std::vector<double> x)
 	std::vector<double> newx(nx);
 	for (int i=0; i<nx; ++i)
 	{
-		newx[i] = x[i]+x[i]*COR.NextRand()*0.01;
+		newx[i] = x[i]+x[i]*COR.NextRand();
 	}
 	return newx;
 }
