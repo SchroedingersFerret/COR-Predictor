@@ -25,7 +25,7 @@
 
 int main()
 {
-	std::cout << "Welcome to COR Predictor 1.0\n";
+	std::cout << "Welcome to COR Predictor 1.1\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
 	srand((unsigned int)time(NULL));
 
