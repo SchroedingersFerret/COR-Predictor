@@ -18,7 +18,7 @@ In addition to the executable, COR Predictor makes use of the following files:
  
 `cor_x.csv`:
 
-The file `cor_x.csv` is an n x 7 table containing the independent variables for n training datapoints. The variables represent two sets of four different physical quantities, one for each of two colliding objects. 
+The file `cor_x.csv` is an n x 7 table containing the independent variables for n training datapoints. The variables represent two sets of three different physical quantities, one for each of two colliding objects, plus the relative velocity of the objects. 
 
 
 * Yield Strength:
