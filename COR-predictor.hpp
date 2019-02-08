@@ -87,6 +87,10 @@ class cor
 				double convergenceTest(std::vector<double> x, std::vector<std::vector<double> > parameters);
 				std::vector<double> nearbyPoint(std::vector<double> x);
 				double nearbyPointTest(std::vector<double> x, std::vector<std::vector<double> > parameters);
+				double percentDifference(std::vector<std::bitset<64*nx> > chrom1, std::vector<std::bitset<64*nx> > chrom2);
+				double getDiversity();
+				void DivergenceError();
+				void BottleneckError();
 			public:
 				std::vector<std::vector<double> > decode(std::vector<std::bitset<64*nx> > w);
 				double SumOfSquares(std::vector<double> residuals);
@@ -95,6 +99,7 @@ class cor
 				void reproduction();
 				void rankChromosomes();
 				void mutate();
+				void CheckDiversity();
 		};
 		void Write_parameters();
 };
