@@ -682,6 +682,60 @@ void cor::genetic::mutate()
 	rankChromosomes();
 }
 
+//returns the percentage of differing bits between two chromosomes
+double cor::genetic::percentDifference(std::vector<std::bitset<64*nx> > chrom1, std::vector<std::bitset<64*nx> > chrom2)
+{
+	int ni = chrom1.size();
+	int nj = chrom1[0].size();
+	double pd = 0.f;
+	for (int i=0; i<ni; ++i)
+	{
+		for (int j=0; j<nj; ++j)
+		{
+			if (chrom1[i][j]!=chrom2[i][j])
+				pd++;
+		}
+	}
+	pd /= (ni*nj);
+	return pd;
+}
+
+//returns the diversity of the population
+double cor::genetic::getDiversity()
+{
+	double diversity = 0.f;
+	for (int i=1; i<n_gpool; ++i)
+	{
+		diversity += percentDifference(chromosomes[0],chromosomes[i]);
+	}
+	diversity /= n_gpool-1;
+	return diversity;
+}
+
+//aborts the program if the population diverges
+void cor::genetic::DivergenceError()
+{
+	std::cout << "Error: Population divergence.\n";
+	abort();
+}
+
+//aborts the program if the population bottlenecks
+void cor::genetic::BottleneckError()
+{
+	std::cout << "Error: Population bottleneck.\n";
+	abort();
+}
+
+//checks the diversity of the population and aborts if it is too large or small
+void cor::genetic::CheckDiversity()
+{
+	double diversity = getDiversity();
+	if (diversity > 0.25)
+		DivergenceError();
+	if (diversity < 0.01)
+		BottleneckError();
+}
+
 //asks the user whether to write the new parameters to file
 bool cor::Query_write()
 {
