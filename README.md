@@ -8,7 +8,7 @@ README
 
 COR Predictor is a command line tool for developing a function  that approximates the coefficient of restitution (COR) of two colliding bodies from their physical properties, _without_ knowing the final velocities. 
 
-COR Predictor does this using a simple supervised learning process. The program reads training data from the files `cor_x.csv` and `cor_y.csv` and numerically optimizes a set of 16 parameters to fit the function to the training data. Once the optimization has reached the required accuracy, the parameters are stored in the file `cor_parameters.csv`, which can be called at startup during future optimizations to improve execution times.
+COR Predictor does this using a simple supervised learning process. The program reads training data from the files `cor_x.csv` and `cor_y.csv` and numerically optimizes a set of 28 parameters to fit the function to the training data. Once the optimization has reached the required accuracy, the parameters are stored in the file `cor_parameters.csv`, which can be called at startup during future optimizations to improve execution times.
 
 ---
 
