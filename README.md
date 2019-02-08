@@ -172,23 +172,19 @@ Each set of independent variables in `cor_x.csv` must have a corresponding depen
 
 * The least squares error is very high at startup. 
 
-This is to some extent normal and usually not a problem since the algorithm works fastest at the beginning of iterations. However, the fitness of the starting population can be improved by increasing the size of the initial population.
+This is to some extent normal and usually not a problem since the algorithm converges fastest at the beginning of iterations. However, the fitness of the starting population can be improved by increasing the size of the initial population.
 
 * The iterations proceed very slowly.
 
-The gene pool size increases the number of operations performed per iteration. For slower computers, the gene pool size should not be much larger than 500.
+The gene pool size increases the number of operations performed per iteration. For slower computers, the gene pool size should not be much larger than 100.
 
-* The error fluctuates wildly or diverges. 
+* Population divergence 
 
-If the mutation rate is too high, the error may fluctuate wildly rather than decreasing, or it may increase. A reasonable value for the mutation rate is 0.005, though a higher number may be more appropriate for larger datasets with more noise.
+If the mutation rate is too high, the error may fluctuate wildly rather than decreasing, or it may increase. The program will stop if it detects that the population is not adapting to the dataset. A reasonable value for the mutation rate is 0.0001, though a higher number may be more appropriate for larger datasets with more noise.
 
-* The error remains the same from the beginning of iterations or decreases slowly and/or inconsistantly.
+* Population bottleneck
 
-Set the elite population size to 0 and retry. If the error fluctuates wildly or diverges, decrease the mutation rate. If that is not the case, then the global minimum may already be reached. If that is the case but the error is too high, the quality of the training data may be low. If you are confident in your training data and cannot solve the problem, contact me. The objective function may need to be redesigned.
-
-* The error decreases steadily then remains the same.
-
-Set the elite population size to 0 and retry. If the behavior remains the same, try increasing the mutation rate. If the error decreases then fluctuates, try decreasing the mutation rate or increasing the size of the elite population.
+Since the number of members in the population is fixed, its diversity decreases as the algorithm progresses until each chromosome is very similar to the others. The program will stop if it detects that this state has been reached before reaching the error tolerance. Bottlenecking can be slowed by increasing the gene pool size or increasing the mutation rate.
 
 * The error decreases steadily then decreases progressivly slower.
 
