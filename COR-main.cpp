@@ -25,7 +25,7 @@
 
 int main()
 {
-	std::cout << "Welcome to COR Predictor 0.2\n";
+	std::cout << "Welcome to COR Predictor 0.3\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
 	srand((unsigned int)time(NULL));
 
@@ -38,11 +38,21 @@ int main()
 	GENETIC.Initiate();
 	while(squareSums[0] > error)
 	{
-		std::cout << "S = " << squareSums[0] << "\n";
 		GENETIC.tournament();
+		
 		GENETIC.reproduction();
+		
 		GENETIC.rankChromosomes();
+		
 		GENETIC.mutate();
+		
+		std::cout << "S = " << squareSums[0] << "\n";
+		iterations++;
+		if (iterations >= 100)
+		{
+			GENETIC.CheckDiversity();
+			iterations = 0;
+		}
 	};
 	std::cout << "S = " << squareSums[0] << "\n";
 	std::vector<std::vector<double> > parameters = GENETIC.decode(chromosomes[0]);
