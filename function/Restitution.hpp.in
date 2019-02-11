@@ -41,15 +41,13 @@ class Restitution
 //returns the taylor approximation of x with coefficients from parameters[]
 double Restitution::taylor(double x, std::vector<double> parameters)
 {
-	double sum;
-	for (int i=0; i<7; ++i)
+	double taylor = parameters[nx-1];
+	
+	for (int i=nx-2; i>=0; --i)
 	{
-		double product = parameters[i];
-		for (int j=0; j<i; ++j)
-			product *= x;
-		sum += product;
+		taylor = parameters[i] + taylor*x;
 	}
-	return sum;
+	return taylor;
 }
 
 //returns the approximate COR with independent variables x[] and coefficients parameters[][]
