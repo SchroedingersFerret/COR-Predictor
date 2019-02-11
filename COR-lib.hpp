@@ -47,17 +47,15 @@ bool cor::rand_bool()
 //returns the taylor approximation of x with coefficients from parameters[]
 double cor::taylor(double x, std::vector<double> parameters)
 {
-	double sum;
-	for (int i=0; i<nx; ++i)
-	{
-		double product = parameters[i];
-		for (int j=0; j<i; ++j)
-			product *= x;
-		sum += product;
-	}
-	return sum;
-}
+	double taylor = parameters[nx-1];
 	
+	for (int i=nx-2; i>=0; --i)
+	{
+		taylor = parameters[i] + taylor*x;
+	}
+	return taylor;
+}
+
 //returns the approximate COR with independent variables x[] and coefficients parameters[][]
 double cor::f(std::vector<double> x, std::vector<std::vector<double> > parameters)
 {
