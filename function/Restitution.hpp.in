@@ -41,9 +41,9 @@ class Restitution
 //returns the taylor approximation of x with coefficients from parameters[]
 double Restitution::taylor(double x, std::vector<double> parameters)
 {
-	double taylor = parameters[nx-1];
+	double taylor = parameters[6];
 	
-	for (int i=nx-2; i>=0; --i)
+	for (int i=5 i>=0; --i)
 	{
 		taylor = parameters[i] + taylor*x;
 	}
