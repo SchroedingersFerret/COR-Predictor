@@ -485,7 +485,7 @@ std::vector<std::vector<double> > cor::Get_parameters()
 								}
 								else
 								{
-									std::cout << "Error: File 'cor_parameters.csv' must be of dimensions 8*8.\n";
+									std::cout << "Error: File 'cor_parameters.csv' must be of dimensions 4*7.\n";
 									fin.close();
 									abort();
 								}
