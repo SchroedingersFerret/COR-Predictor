@@ -36,6 +36,7 @@ int main()
 	clock_t tStart = clock();
 	//execute genetic algorithm
 	GENETIC.Initiate();
+	int iterations = 0;
 	while(squareSums[0] > error)
 	{
 		GENETIC.tournament();
