@@ -59,7 +59,7 @@ COR Predictor is built by using CMake to generate a makefile which can be used t
 
 * Gnu+Linux
 
-In the terminal, navigate to the parent directory `~/COR-Predictor-master`. Create the build folder with the command
+In the terminal, navigate to the parent directory `~/COR-Predictor-0.2-alpha`. Create the build folder with the command
 
 `~/COR-Predictor-0.2-alpha $ mkdir build`
 
