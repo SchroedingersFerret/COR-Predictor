@@ -39,8 +39,6 @@ static int n_gpool;
 static int n_repro;
 //number of independent variables
 static const int nx = 7;
-//parameter array dimension
-static const int n_par = 4;
 //percentage selected for mutation
 static double pm;
 //number of elites
@@ -53,46 +51,68 @@ static double error;
 static std::vector<std::vector<double> > x;
 //dependent variable array size n_data
 static std::vector<double> y;
-//chromosome stores parameters as a binary array
-static std::vector<std::vector<std::bitset<64*nx> > > chromosomes(0, std::vector<std::bitset<64*nx> > (n_par));
 //sum of the square of each residual
 static std::vector<double> squareSums;
+
+class genome
+{
+	public:
+		std::vector<std::bitset<64*10> > chromosome;
+		genome()
+		{
+			chromosome.resize(4);
+		};
+};
+
+//population stores each binary genome
+static std::vector<genome> population;
+
+class parameters
+{
+	public:
+		std::vector<std::vector<double> > c;
+		parameters()
+		{
+			c.resize(4,std::vector<double> (10));
+		};
+};
 
 class cor
 {
 	private:
 		double NextRand();
 		bool rand_bool();
-		double taylor(double x, std::vector<double> parameters);
-		double f(std::vector<double> x, std::vector<std::vector<double> > parameters);
+		double combine(double x, double y);
+		double Chebyshev(double x, std::vector<double> param);
+		std::vector<double> read_csv1d(const char * filename);
+		std::vector<std::vector<double> > read_csv2d(const char * filename);
 		bool Query_write();
 	public:
+		double f(std::vector<double> x, parameters param);
 		void Get_settings();
 		void Get_x();
 		void Get_y();
-		std::vector<std::vector<double> > Get_parameters();
-		std::vector<std::vector<double> > Get_random_parameters();
+		parameters Get_parameters();
+		parameters Get_random_parameters();
 		class genetic
 		{
 			private:
 				bool Query_random();
 				bool Query_initiate();
 				bool Use_random();
-				std::vector<std::bitset<64*nx> > encode(std::vector<std::vector<double> > parameters);
-				std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, std::vector<std::vector<double> > parameters);
+				genome encode(parameters param);
+				std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param);
 				int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 				void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 				void shuffle(std::vector<int> &index);
-				double convergence(double x, std::vector<double> parameters);
-				double convergenceTest(std::vector<double> x, std::vector<std::vector<double> > parameters);
 				std::vector<double> nearbyPoint(std::vector<double> x);
-				double nearbyPointTest(std::vector<double> x, std::vector<std::vector<double> > parameters);
-				double percentDifference(std::vector<std::bitset<64*nx> > chrom1, std::vector<std::bitset<64*nx> > chrom2);
+				double nearbyPointTest(std::vector<double> x, parameters param);
+				double percentDifference(genome individual1, genome individual2);
 				double getDiversity();
 				void DivergenceError();
 				void BottleneckError();
 			public:
-				std::vector<std::vector<double> > decode(std::vector<std::bitset<64*nx> > w);
+				parameters decode(genome w);
 				double SumOfSquares(std::vector<double> residuals);
 				void Initiate();
 				void tournament();
@@ -101,7 +121,8 @@ class cor
 				void mutate();
 				void CheckDiversity();
 		};
-		void Write_parameters();
+		void Print_parameters(parameters param);
+		void Write_parameters(parameters param);
 };
 
 static cor COR;
