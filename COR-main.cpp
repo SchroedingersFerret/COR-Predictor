@@ -25,20 +25,21 @@
 
 int main()
 {
-	std::cout << "Welcome to COR Predictor 0.1\n";
+	std::cout << "Welcome to COR Predictor 0.2\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
 	srand((unsigned int)time(NULL));
 
 	COR.Get_settings();
 	COR.Get_x();
 	COR.Get_y();
-	
 	clock_t tStart = clock();
 	//execute genetic algorithm
 	GENETIC.Initiate();
+	
 	int iterations = 0;
 	while(squareSums[0] > error)
 	{
+		
 		GENETIC.tournament();
 		
 		GENETIC.reproduction();
@@ -46,7 +47,6 @@ int main()
 		GENETIC.rankChromosomes();
 		
 		GENETIC.mutate();
-		
 		std::cout << "S = " << squareSums[0] << "\n";
 		iterations++;
 		if (iterations >= 100)
@@ -55,23 +55,12 @@ int main()
 			iterations = 0;
 		}
 	};
-	std::cout << "S = " << squareSums[0] << "\n";
-	std::vector<std::vector<double> > parameters = GENETIC.decode(chromosomes[0]);
-	std::cout << "\nParameters found:\n" ;
-
-	for (int i=0; i<n_par; ++i)
-	{
-		for (int j=0; j<nx; ++j)
-		{
-			std::cout << parameters[i][j] << ",";
-		}
-		std::cout << "\n";
-	}
+	parameters param = GENETIC.decode(population[0]);
+	std::cout << "\nParameters found:\n\n" ;
+	COR.Print_parameters(param);
+	
 	std::cout << "\n";
 	std::cout << "Execution time: " << ( (double) clock()-tStart)/CLOCKS_PER_SEC << " s\n\n";
-	COR.Write_parameters();
+	COR.Write_parameters(param);
 	return 0;
 }
-
-
-
