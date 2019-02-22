@@ -1,5 +1,5 @@
 initial_population_size=1000
-gene_pool_size=500
+gene_pool_size=50
 elite_population_size=10
 mutation_rate=0.005
 least_squares_error=1e-9
