@@ -23,10 +23,10 @@
 #ifndef COR_LIB_HPP_
 #define COR_LIB_HPP_
 
-//generates a random double between 0 and 1.0
+//generates a random double between 0 and 1
 double cor::NextRand()
 {
-	double r = rand() % RAND_MAX + 1;
+	double r = rand() % RAND_MAX + (RAND_MAX/2 - 1);
 	r /= RAND_MAX;
 	return r;
 }
@@ -89,14 +89,14 @@ std::vector<double> cor::genetic::nearbyPoint(std::vector<double> x)
 }
 
 //Returns a modifier if nearby points are not in the acceptible range for the COR
-double cor::genetic::nearbyPointTest(std::vector<double> x, std::vector<std::vector<double> > parameters)
+double cor::genetic::nearbyPointTest(std::vector<double> x, parameters param)
 {
-	double y = COR.f(nearbyPoint(x),parameters);
+	double y = COR.f(nearbyPoint(x),param);
 	if (y > 1.f)
-		return y;
+		return y-1.f;
 	if (y < 0)
-		return y - 1.f;
-	return 1.f;
+		return y;
+	return 0;
 }
 
 //gets the residual of each datapoint
@@ -235,7 +235,7 @@ void cor::Get_settings()
 		fin >> ch;
 	}while(ch!='=');
 	fin >> n_gpool;
-	chromosomes.resize(n_gpool);
+	population.resize(n_gpool);
 	squareSums.resize(n_gpool);
 	n_repro = n_gpool/2;
 
@@ -261,123 +261,99 @@ void cor::Get_settings()
 	
 }
 
+//reads 1d csv files
+std::vector<double> cor::read_csv1d(const char * filename)
+{
+	std::ifstream fin;
+	double input;
+	std::vector<double> output;
+	fin.open(filename);
+	while(!fin.eof())
+	{
+		if (fin.peek()==',')
+		{
+			char ch;
+			fin.get(ch);
+		}
+		if (fin >> input)
+			output.push_back(input);
+	}
+	fin.close();
+	return output;
+}
 
+//reads 2d csv files
+std::vector<std::vector<double> > cor::read_csv2d(const char * filename)
+{
+	std::ifstream fin;
+	double input;
+	std::vector<double> datapoint;
+	std::vector<std::vector<double> > output;
+	fin.open(filename);
+	while(!fin.eof())
+	{
+		
+		if (fin.peek() == ',' || fin.peek() == '\n')
+		{
+			char ch;
+			fin.get(ch);
+			if (ch == '\n')
+			{
+				output.push_back(datapoint);
+				datapoint.clear();
+			}
+		}
+		if (fin >> input)
+		{
+			datapoint.push_back(input);
+		}
+	}
+	fin.close();
+	return output;
+}
 
 //reads the independent variables of the training datapoints
 void cor::Get_x()
 {
 	std::ifstream fin;
 	fin.open("cor_x.csv");
+	fin.close();
 	if (fin.fail())
 	{
 		std::cout << "Error: File 'cor_x.csv' not found.\n";
 		abort();
 	}
-	double input;
-	int in_i = 0;
-	std::vector<double> datapoint(nx);
-
-	while(!fin.eof())
+	
+	x = read_csv2d("cor_x.csv");
+	
+	if (x[0].size() != 7)
 	{
-		if(fin.peek() == ',' || fin.peek() == '\n')
-		{
-			char ch;
-			fin.get(ch);
-			switch(ch)
-			{
-				case ','	:
-								in_i++;
-								if(in_i > nx-1)
-								{
-
-									std::cout << "Error: File 'cor_x.csv' must be of dimensions n*8.\n";
-									fin.close();
-									abort();
-								}
-								break;
-
-				case '\n'	:	if (in_i == nx-1)
-								{
-									x.push_back(datapoint);
-									in_i = 0;
-									n_data++;
-								}
-								else
-								{
-									std::cout << "Error: File 'cor_x.csv' must be of dimensions n*8.\n";
-									fin.close();
-									abort();
-								}
-								break;
-
-			}
-		}
-		if(fin >> input)
-		{
-			datapoint[in_i] = input;
-		}
-
+		std::cout << "Error: File 'cor_x.csv' must be of dimension n*7.\n";
+		abort();
 	}
+	n_data = x.size();
 	fin.close();
 }
-
+	
 //reads the dependent variables of the training datapoints
 void cor::Get_y()
 {
 	std::ifstream fin;
 	fin.open("cor_y.csv");
+	fin.close();
 	if (fin.fail())
 	{
 		std::cout << "Error: File 'cor_y.csv' not found.\n";
 		abort();
 	}
-	double input;
-	int in_i = 0;
-	int in_j = 0;
-	while(!fin.eof())
-	{
-		if(fin.peek() == ',')
-		{
-			char ch;
-			fin.get(ch);
-			switch(ch)
-			{
-				case ','	:
-								in_i++;
-								if(in_i > 0)
-								{
+	
+	y = read_csv1d("cor_y.csv");
 
-									std::cout << "Error: File 'cor_y.csv' must be of dimension n*1'.\n";
-									fin.close();
-									abort();
-								}
-								break;
-				case '\n'	:	if (in_i == 0)
-								{
-									in_i = 0;
-									in_j++;
-								}
-								else
-								{
-									std::cout << "Error: File 'cor_y.csv' must be of dimensions n*1.\n";
-									fin.close();
-									abort();
-								}
-								break;
-			}
-		}
-		if(fin >> input)
-		{
-			y.push_back(input);
-		}
-	}
 	if (y.size() != x.size())
 	{
 		std::cout << "Error: Files 'cor_x.csv' and 'cor_y.csv' must have the same number of entries.\n";
-		fin.close();
 		abort();
 	}
-	fin.close();
 }
 
 //asks user whether to begin optimization with completely random population
@@ -425,124 +401,91 @@ bool cor::genetic::Query_initiate()
 //returns a boolean operator to instruct program whether to randomize elite population
 bool cor::genetic::Use_random()
 {
-	bool random;
 	std::ifstream fin;
 	fin.open("cor_parameters.csv");
 	fin.close();
 	if (fin.fail())
 	{
 		std::cout << "File: 'cor_parameters.csv' not found.\n";
-		random = Query_random();
+		return Query_random();
 	}
-	else
-	{
-		std::cout << "File: 'cor_parameters.csv' found.\n";
-		random = Query_initiate();
-	}
-
-	return random;
+	
+	std::cout << "File: 'cor_parameters.csv' found.\n";
+	return Query_initiate();
 }
 
 //reads parameter array from file
-std::vector<std::vector<double> > cor::Get_parameters()
+parameters cor::Get_parameters()
 {
-	std::vector<std::vector<double> > parameters;
-	std::ifstream fin;
-	fin.open("cor_parameters.csv");
-	double input;
-	int in_i;
-	std::vector<double> datapoint(n_par);
-	while(!fin.eof())
-	{
-		if(fin.peek() == ',' || fin.peek() == '\n')
+	parameters param;
+
+	
+		std::vector<std::vector<double> > temp = read_csv2d("cor_parameters.csv");
+		if (temp.size() != param.c.size() || temp[0].size() != param.c[0].size())
 		{
-			char ch;
-			fin.get(ch);
-			switch(ch)
-			{
-				case ','	:
-								in_i++;
-								if(in_i > nx-1)
-								{
 
-									std::cout << "Error: File 'cor_parameters.csv' must be of dimensions 8*8.\n";
-									fin.close();
-									abort();
-								}
-								break;
-
-				case '\n'	:	if (in_i == nx-1)
-								{
-									parameters.push_back(datapoint);
-									in_i = 0;
-
-								}
-								else
-								{
-									std::cout << "Error: File 'cor_parameters.csv' must be of dimensions 4*7.\n";
-									fin.close();
-									abort();
-								}
-								break;
-
-			}
+			std::cout << "Error: File 'cor_parameters.csv' must be of dimensions " << param.c.size() << "*" << param.c[0].size() << ".\n";
+			abort();
 		}
-		if(fin >> input)
-		{
-			datapoint[in_i] = input;
-		}
-	}
-	fin.close();
-	return parameters;
+		param.c = temp;
+	
+	return param;
 }
 
 //fills a parameter array with random doubles
-std::vector<std::vector<double> > cor::Get_random_parameters()
+parameters cor::Get_random_parameters()
 {
-	std::vector<std::vector<double> > parameters(n_par,std::vector<double>(nx));
-	for (int i=0; i<n_par; ++i)
-		for (int j=0; j<nx; ++j)
-			parameters[i][j] = NextRand();
-	return parameters;
+	parameters param;
+	int ni = param.c.size();
+	int nj = param.c[0].size();
+	for (int i=0; i<ni; ++i)
+		for (int j=0; j<nj; ++j)
+			param.c[i][j] = NextRand();
+		
+	return param;
 }
 
 void cor::genetic::Initiate()
 {
-	std::vector<std::vector<std::bitset<64*nx> > > bin (n_initial, std::vector<std::bitset<64*nx> > (n_par));
-	std::vector<std::vector<double> > parameters (n_par,std::vector<double> (nx));
+	std::vector<genome> bin (n_initial);
+	parameters param;
 	std::vector<double> cost (n_initial);
 	std::vector<int> index (n_initial);
 	bool random = Use_random();
-
 	//fills the elite population with the parameters read from file unless user specifies an entirely random population
 	if (!random)
-		parameters = COR.Get_parameters();
+		param = COR.Get_parameters();
+	
 	for (int i=0; i<n_elite; ++i)
 	{
 		if (random)
-			parameters = COR.Get_random_parameters();
-		std::vector<double> residuals = GetResiduals(y,x,parameters);
+			param = COR.Get_random_parameters();
+		
+		std::vector<double> residuals = GetResiduals(y,x,param);
+		
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
-		bin[i] = encode(parameters);
+		bin[i] = encode(param);
 	}
 
 	//The remaining population is initialized randomly
 	for (int i=n_elite; i<n_initial; ++i)
 	{
-		parameters = COR.Get_random_parameters();
-		std::vector<double> residuals = GetResiduals(y,x,parameters);
+		param = COR.Get_random_parameters();
+		
+		std::vector<double> residuals = GetResiduals(y,x,param);
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
-		bin[i] = encode(parameters);
+		bin[i] = encode(param);
 	}
 	//sorts population by cost
 	quicksort_index(cost,index,0,cost.size());
 	for (int i=0; i<n_gpool; ++i)
 	{
 		squareSums[i] = cost[i];
-		chromosomes[i] = bin[index[i]];
+		population[i] = bin[index[i]];
 	}
+	
 }
 
 //shuffles the indices into a random configuration
@@ -553,11 +496,7 @@ void cor::genetic::shuffle(std::vector<int> &index)
 	{
 		int j = rand() % k;
 		if (j!= i)
-		{
-			int i_tmp = index[i];
-			index[i] = index[j];
-			index[j] = i_tmp;
-		}
+			std::swap(index[i],index[j]);
 	}
 }
 
@@ -565,7 +504,7 @@ void cor::genetic::shuffle(std::vector<int> &index)
 void cor::genetic::tournament()
 {
 	std::vector<int> index(n_gpool);
-	std::vector<std::vector<std::bitset<64*nx> > > bin = chromosomes;
+	std::vector<genome> bin = population;
 	std::vector<double> cost = squareSums;
 	for (int i=0; i<n_gpool; ++i)
 		index[i] = i;
@@ -575,12 +514,12 @@ void cor::genetic::tournament()
 	{
 		if (cost[index[k]] < cost[index[k+1]])
 		{
-			chromosomes[i] = bin[index[k]];
+			population[i] = bin[index[k]];
 			squareSums[i] = cost[index[k]];
 		}
 		else
 		{
-			chromosomes[i] = bin[index[k+1]];
+			population[i] = bin[index[k+1]];
 			squareSums[i] = cost[index[k+1]];
 		}
 		k += 2;
@@ -595,71 +534,79 @@ void cor::genetic::reproduction()
 	for (int i=n_repro; i<n_repro+n_repro/2; ++i)
 	{
 		//perform reproduction ( ͡° ͜ʖ ͡°)
-		for (int l=0; l<4; ++l)
+		int nl = population[i].chromosome.size();
+		int nm = population[i].chromosome[0].size();
+		for (int l=0; l<nl; ++l)
 		{
-			for (int m=0; m<nx*64; ++m)
+			for (int m=0; m<nm; ++m)
 			{
 				bool parent = COR.rand_bool();
 				if (parent)
 				{
-					chromosomes[i][l][m] = chromosomes[k][l][m];
-					chromosomes[i+n_repro/2][l][m] = chromosomes[k+1][l][m];
+					population[i].chromosome[l][m] = population[k].chromosome[l][m];
+					population[i+n_repro/2].chromosome[l][m] = population[k+1].chromosome[l][m];
 				}
 				if (!parent)
 				{
-					chromosomes[i][l][m] = chromosomes[k+1][l][m];
-					chromosomes[i+n_repro/2][l][m] = chromosomes[k][l][m];
+					population[i].chromosome[l][m] = population[k+1].chromosome[l][m];
+					population[i+n_repro/2].chromosome[l][m] = population[k].chromosome[l][m];
 				}
 			}
 		}
-		k += 2;
 	}
 }
 
 //ranks the chromosomes by cost
 void cor::genetic::rankChromosomes()
 {
-	std::vector<std::vector<std::bitset<64*nx> > > bin = chromosomes;
-	std::vector<std::vector<double> > parameters(n_par,std::vector<double> (nx));
+	std::vector<genome> bin = population;
+	parameters param;
 	std::vector<double> cost(n_gpool);
 	std::vector<int> index(n_gpool);
+	
 	for (int i=0; i<n_gpool; ++i)
 	{
-		parameters = decode(bin[i]);
-		std::vector<double> residuals = GetResiduals(y,x,parameters);
+		param = decode(bin[i]);
+		std::vector<double> residuals = GetResiduals(y,x,param);
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
 	}
+	
 	quicksort_index(cost,index,0,cost.size());
 	for (int i=0; i<n_gpool; ++i)
 	{
 		squareSums[i] = cost[i];
-		chromosomes[i] = bin[index[i]];
+		population[i] = bin[index[i]];
 	}
 }
 
 //performs mutations on the chromosome population
 void cor::genetic::mutate()
 {
-	int mmax = (int) (n_gpool*n_par*nx*64*pm+1);
-	std::vector<std::vector<std::bitset<64*nx> > > bin = chromosomes;
+	
+	std::vector<genome> bin = population;
 	//elite population remains unchanged if mutation increases the cost
+	int ni = bin[0].chromosome.size();
+	int nj = bin[0].chromosome[0].size();
+	int mmax = (int) (n_gpool*ni*nj*64*pm+1);
 	for (int i=0; i<n_elite; ++i)
 	{
-		std::vector<std::vector<double> > parameters(n_par,std::vector<double> (nx));
-		int n_mutate = (int) (n_par*nx*64*pm+1);
+		parameters param;
+		
+		int n_mutate = (int) (ni*nj*pm+1);
 		for (int l=0; l<n_mutate; ++l)
 		{
-			int i_mutate = rand() % n_par;
-			int j_mutate = rand() % (nx*64);
-			bin[i][i_mutate].flip(j_mutate);
+			
+			int i_mutate = rand() % ni;
+			int j_mutate = rand() % nj;
+			bin[i].chromosome[i_mutate].flip(j_mutate);
 		}
-		parameters = decode(bin[i]);
-		std::vector<double> residuals = GetResiduals(y,x,parameters);
+		param = decode(bin[i]);
+		std::vector<double> residuals = GetResiduals(y,x,param);
 		double cost = SumOfSquares(residuals);
 		if (cost < squareSums[i])
 		{
-			chromosomes[i] = bin[i];
+			population[i] = bin[i];
 			squareSums[i] = cost;
 		}
 	}
@@ -667,24 +614,24 @@ void cor::genetic::mutate()
 	for (int i=0; i<mmax; ++i)
 	{
 		int i_gpool = rand() % (n_gpool-n_elite) + n_elite;
-		int i_mutate = rand() % n_par;
-		int j_mutate = rand() % (nx*64);
-		chromosomes[i_gpool][i_mutate].flip(j_mutate);
+		int i_mutate = rand() % ni;
+		int j_mutate = rand() % nj;
+		population[i_gpool].chromosome[i_mutate].flip(j_mutate);
 	}
 	rankChromosomes();
 }
 
 //returns the percentage of differing bits between two chromosomes
-double cor::genetic::percentDifference(std::vector<std::bitset<64*nx> > chrom1, std::vector<std::bitset<64*nx> > chrom2)
+double cor::genetic::percentDifference(genome individual1, genome individual2)
 {
-	int ni = chrom1.size();
-	int nj = chrom1[0].size();
+	int ni = individual1.chromosome.size();
+	int nj = individual1.chromosome[0].size();
 	double pd = 0.f;
 	for (int i=0; i<ni; ++i)
 	{
 		for (int j=0; j<nj; ++j)
 		{
-			if (chrom1[i][j]!=chrom2[i][j])
+			if (individual1.chromosome[i][j]!=individual2.chromosome[i][j])
 				pd++;
 		}
 	}
@@ -698,7 +645,7 @@ double cor::genetic::getDiversity()
 	double diversity = 0.f;
 	for (int i=1; i<n_gpool; ++i)
 	{
-		diversity += percentDifference(chromosomes[0],chromosomes[i]);
+		diversity += percentDifference(population[0],population[i]);
 	}
 	diversity /= n_gpool-1;
 	return diversity;
@@ -722,10 +669,26 @@ void cor::genetic::BottleneckError()
 void cor::genetic::CheckDiversity()
 {
 	double diversity = getDiversity();
-	if (diversity > 0.25)
+	if (diversity > 0.50)
 		DivergenceError();
 	if (diversity < 0.01)
 		BottleneckError();
+}
+
+//prints the parameters in the terminal
+void cor::Print_parameters(parameters param)
+{
+	int ni = param.c.size();
+	int nj = param.c[0].size();
+	for (int i=0; i<ni; ++i)
+	{
+		for (int j=0; j<nj; ++j)
+		{
+			std::cout << param.c[i][j] << ",";
+		}
+		std::cout << "\n";
+	}
+	std::cout << "\n\n";
 }
 
 //asks the user whether to write the new parameters to file
@@ -748,30 +711,30 @@ bool cor::Query_write()
 					break;
 	}
 }
-
+	
 //runs Query_write() and writes parameters to file depending on user input
-void cor::Write_parameters()
+void cor::Write_parameters(parameters param)
 {
 	bool write = Query_write();
 	if (write)
 	{
 		std::ofstream fout;
 		fout.open("cor_parameters.csv");
-		std::vector<std::vector<double> > parameters = GENETIC.decode(chromosomes[0]);
-		int ni = parameters.size();
-		int nj = parameters[0].size();
+		int ni = param.c.size();
+		int nj = param.c[0].size();
 		for (int i=0; i<ni; ++i)
 		{
 			for (int j=0; j<nj; ++j)
 			{
-				fout << parameters[i][j];
+				fout << param.c[i][j];
 				if (j != nj-1)
 					fout << ",";
 			}
 			fout << "\n";
 		}
 		fout.close();
-		std::cout << "Parameters written to 'cor_parameters.csv'.\n";
+		
+		std::cout << "Parameters written.\n";
 	}
 	else
 		std::cout << "Program terminated without writing new parameters.\n";
