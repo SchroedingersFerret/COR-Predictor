@@ -44,52 +44,37 @@ bool cor::rand_bool()
 		return rand_bool();
 }
 
-//returns the taylor approximation of x with coefficients from parameters[]
-double cor::taylor(double x, std::vector<double> parameters)
+//Evaluates Chebyshev approximation at x with coefficients from param[]
+double cor::Chebyshev(double x, std::vector<double> param)
 {
-	double taylor = parameters[nx-1];
-	
-	for (int i=nx-2; i>=0; --i)
+	int ni = param.size();
+	double b1 = 0.f, b2 = 0.f;
+	for (int i=ni-1; i>0; --i)
 	{
-		taylor = parameters[i] + taylor*x;
+		double temp = b1;
+		b1 = 2.f*x*b1-b2+param[i];
+		b2 = temp;
 	}
-	return taylor;
+	return x*b1-b2+param[0];
+}
+
+//combines material properties
+double cor::combine(double x, double y)
+{
+	return sqrt(0.5*(x*x + y*y));
 }
 
 //returns the approximate COR with independent variables x[] and coefficients parameters[][]
-double cor::f(std::vector<double> x, std::vector<std::vector<double> > parameters)
+double cor::f(std::vector<double> x, parameters param)
 {
-	double y = 3.1;
-	y *= taylor(x[0],parameters[0]);
-	y *= taylor(x[1],parameters[0]);
-	y /= taylor(x[2],parameters[1]);
-	y /= taylor(x[3],parameters[1]);
-	y /= taylor(x[4],parameters[2]);
-	y /= taylor(x[5],parameters[2]);
-	y /= taylor(x[6],parameters[3]);
-	return y;
-}
-
-//Performs a ratio test 
-double cor::genetic::convergence(double x, std::vector<double> parameters)
-{
-	return (parameters[7]/parameters[6])*x;
-}
-
-//Returns a modifier if a the product of the taylor series convergences is divergent
-double cor::genetic::convergenceTest(std::vector<double> x, std::vector<std::vector<double> > parameters)
-{
-	double r = 3.1;
-	r *= convergence(x[0],parameters[0]);
-	r *= convergence(x[1],parameters[0]);
-	r /= convergence(x[2],parameters[1]);
-	r /= convergence(x[3],parameters[1]);
-	r /= convergence(x[4],parameters[2]);
-	r /= convergence(x[5],parameters[2]);
-	r /= convergence(x[6],parameters[3]);
-	if (r*r > 1.f)
-		return r;
-	return 1.f;
+	double y1 = Chebyshev(x[0],param.c[0]);
+	y1 /= Chebyshev(x[2],param.c[1]);
+	y1 /= Chebyshev(x[4],param.c[2]);
+	double y2 = Chebyshev(x[1],param.c[0]);
+	y2 /= Chebyshev(x[3],param.c[1]);
+	y2 /= Chebyshev(x[5],param.c[2]);
+	
+	return 3.1*combine(y1,y2)/Chebyshev(x[6],param.c[3]);
 }
 
 //Returns a nearby point
@@ -115,11 +100,14 @@ double cor::genetic::nearbyPointTest(std::vector<double> x, std::vector<std::vec
 }
 
 //gets the residual of each datapoint
-std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, std::vector<std::vector<double> > parameters)
+std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param)
 {
-	std::vector<double> residuals(n_data);
+	std::vector<double> residuals(2*n_data);
 	for (int i=0; i<n_data; ++i)
-		residuals[i] = y[i]-COR.f(x[i],parameters)*convergenceTest(x[i],parameters)*nearbyPointTest(x[i],parameters);
+	{
+		residuals[i] = y[i]-COR.f(x[i],param);
+		//residuals[n_data+i] = nearbyPointTest(x[i],param);
+	}
 	return residuals;
 }
 
@@ -127,37 +115,40 @@ std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vecto
 double cor::genetic::SumOfSquares(std::vector<double> residuals)
 {
 	double sum;
-	for (int i=0; i<n_data; ++i)
+	int ni = residuals.size();
+	for (int i=0; i<ni; ++i)
 		sum += residuals[i]*residuals[i];
 	return sum;
 }
 
 //encodes the parameters into an offset binary array
-std::vector<std::bitset<64*nx> > cor::genetic::encode(std::vector<std::vector<double> > parameters)
+genome cor::genetic::encode(parameters param)
 {
-	std::vector<std::bitset<64*nx> > w(n_par);
-	for (int i=0; i<n_par; ++i)
+	genome w;
+	int ni = param.c.size();
+	int nj = param.c[0].size();
+	for (int i=0; i<ni; ++i)
 	{
-		for (int j=0; j<nx; ++j)
+		for (int j=0; j<nj; ++j)
 		{
-			double sum = parameters[i][j];
-			w[i][j*64] = 1;
-			if (parameters[i][j] < 0)
+			double sum = param.c[i][j];
+			w.chromosome[i][j*64] = 1;
+			if (param.c[i][j] < 0)
 			{
-				w[i][j*64] = 0;
+				w.chromosome[i][j*64] = 0;
 				sum *= -1;
 			}
-			w[i][j*64+1] = 0;
+			w.chromosome[i][j*64+1] = 0;
 			if ((int)(0.5+sum)==1)
-				w[i][j*64+1] = 1;
-			double d = 2.0;
+				w.chromosome[i][j*64+1] = 1;
+			double d = 2.f;
 			for (int k=2; k<64; ++k)
 			{
-				if (w[i][j*64+k-1])
-					sum -= 1.0/d;
-				w[i][j*64+k] = 0;
+				if (w.chromosome[i][j*64+k-1])
+					sum -= 1.f/d;
+				w.chromosome[i][j*64+k] = 0;
 				if ((int)(0.5+d*sum) == 1)
-					w[i][j*64+k] = 1;
+					w.chromosome[i][j*64+k] = 1;
 				d *= 2;
 			}
 		}
@@ -166,27 +157,30 @@ std::vector<std::bitset<64*nx> > cor::genetic::encode(std::vector<std::vector<do
 }
 
 //recovers the parameters from a binary chromosome
-std::vector<std::vector<double> > cor::genetic::decode(std::vector<std::bitset<64*nx> > w)
+parameters cor::genetic::decode(genome w)
 {
-	std::vector<std::vector<double> > parameters(n_par,std::vector<double> (nx));
-	for (int i=0; i<n_par; ++i)
+	parameters param;
+	int ni = param.c.size();
+	int nj = param.c[0].size();
+	for (int i=0; i<ni; ++i)
 	{
-		for (int j=0; j<nx; ++j)
+		for (int j=0; j<nj; ++j)
 		{
-			double d = 2.0;
+			double d = 2.f;
 			double sum = 0;
 			for (int k=1; k<64; ++k)
 			{
-				if (w[i][j*64+k])
-					sum += 1.0/d;
+				if (w.chromosome[i][j*64+k])
+					sum += 1.f/d;
 				d *= 2;
 			}
-			parameters[i][j] = sum + 1.0/d;
-			if (w[i][j*64])
-				parameters[i][j] *= -1;
+			param.c[i][j] = sum + 1.f/d;
+			if (!w.chromosome[i][j*64])
+				param.c[i][j] *= -1;
 		}
 	}
-	return parameters;
+
+	return param;
 }
 
 //partition function for quicksort_index
