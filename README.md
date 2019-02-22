@@ -61,27 +61,27 @@ COR Predictor is built by using CMake to generate a makefile which can be used t
 
 In the terminal, navigate to the parent directory `~/COR-Predictor-master`. Create the build folder with the command
 
-`~/COR-Predictor-master $ mkdir build`
+`~/COR-Predictor-0.2-alpha $ mkdir build`
 
 Next change to the build directory with the command
 
-`~/COR-Predictor-master $ cd build`
+`~/COR-Predictor-0.2-alpha $ cd build`
 
 Run cmake with the command 
 
-`~/COR-Predictor-master/build $ cmake ..`
+`~/COR-Predictor-0.2-alpha/build $ cmake ..`
 
 and make the executable with 
 
-`~/COR-Predictor-master/build $ make`
+`~/COR-Predictor-0.2-alpha/build $ make`
 
 Two executable will be created in the build directory. Move them to the parent folder using a file manager or with
 
-`~/COR-Predictor-master/build $ mv COR-Predictor make-CMakeLists ~/COR-Predictor-1.0`
+`~/COR-Predictor-0.2-alpha/build $ mv COR-Predictor make-CMakeLists ~/COR-Predictor-1.0`
 
 Run COR Predictor by navigating back to the parent directory and entering
 
-`~/COR-Predictor-master $ ./COR-Predictor`
+`~/COR-Predictor-0.2-alpha $ ./COR-Predictor`
 
 * Windows
 
