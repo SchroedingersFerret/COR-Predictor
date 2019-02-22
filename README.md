@@ -1,6 +1,6 @@
 COR Predictor 
 =============
-version 0.1
+version 0.2
 
 By: J. Ball (SchroedingersFerret)
 
@@ -8,7 +8,7 @@ README
 
 COR Predictor is a command line tool for developing a function  that approximates the coefficient of restitution (COR) of two colliding bodies from their physical properties, _without_ knowing the final velocities. 
 
-COR Predictor does this using a simple supervised learning process. The program reads training data from the files `cor_x.csv` and `cor_y.csv` and numerically optimizes a set of 28 parameters to fit the function to the training data. Once the optimization has reached the required accuracy, the parameters are stored in the file `cor_parameters.csv`, which can be called at startup during future optimizations to improve execution times.
+COR Predictor does this using a simple supervised learning process. The program reads training data from the files `cor_x.csv` and `cor_y.csv` and numerically optimizes a set of 40 parameters to fit the function to the training data. Once the optimization has reached the required accuracy, the parameters are stored in the file `cor_parameters.csv`, which can be called at startup during future optimizations to improve execution times.
 
 ---
 
@@ -172,7 +172,7 @@ Each set of independent variables in `cor_x.csv` must have a corresponding depen
 
 * The least squares error is very high at startup. 
 
-This is to some extent normal and usually not a problem since the algorithm converges fastest at the beginning of iterations. However, the fitness of the starting population can be improved by increasing the size of the initial population.
+The fitness of the starting population can be improved somewhat by increasing the size of the initial population.
 
 * The iterations proceed very slowly.
 
@@ -180,11 +180,11 @@ The gene pool size increases the number of operations performed per iteration. F
 
 * Population divergence 
 
-If the mutation rate is too high, the error may fluctuate wildly rather than decreasing, or it may increase. The program will stop if it detects that the population is not adapting to the dataset. A reasonable value for the mutation rate is 0.0001, though a higher number may be more appropriate for larger datasets with more noise.
+If the mutation rate is too high, the least squares error in the population may fluctuate wildly rather than decreasing, or it may increase. The program will stop if it detects that the population is not adapting to the dataset. A reasonable value for the mutation rate is 0.001, though a higher number may be more appropriate for larger datasets with more noise.
 
 * Population bottleneck
 
-Since the number of members in the population is fixed, its diversity decreases as the algorithm progresses until each chromosome is very similar to the others. The program will stop if it detects that this state has been reached before reaching the error tolerance. Bottlenecking can be slowed by increasing the gene pool size or increasing the mutation rate.
+Since the number of members in the population is fixed, its diversity decreases as the algorithm progresses until each chromosome is very similar to the others (A Habsburg scenario is guarenteed!). Mutation stops this by introducing new variation to the population, but if the mutation rate is too low the problem will only be delayed. The program will stop if it detects that this state has been reached before reaching the error tolerance. Bottlenecking can be slowed by increasing the gene pool size or increasing the mutation rate.
 
 * The error decreases steadily then decreases progressivly slower.
 
@@ -197,27 +197,27 @@ Once the parameters have been fitted using the learning program, a library conta
 
 First, run the executable `make-CMakeLists` by entering this command in the parent directory:
 
-`~/COR-Predictor-master $ ./make-CMakeLists`
+`~/COR-Predictor-0.2-alpha $ ./make-CMakeLists`
 
 This will create a CMakeList file in the folder `function`. Navigate to this folder using 
 
-`~/COR-Predictor-master $ cd function`
+`~/COR-Predictor-0.2-alpha $ cd function`
 
 Create a build folder using 
 
-`~/COR-Predictor-master/function $ mkdir build`
+`~/COR-Predictor-0.2-alpha/function $ mkdir build`
 
 Navigate to this folder:
 
-`~/COR-Predictor-master/function $ cd build`
+`~/COR-Predictor-0.2-alpha/function $ cd build`
 
 Run CMake using 
 
-`~/COR-Predictor-master/function/build $ cmake ..`
+`~/COR-Predictor-0.2-alpha/function/build $ cmake ..`
 
 and run the makefile:
 
-`~/COR-Predictor-master/function/build $ make`
+`~/COR-Predictor-0.2-alpha/function/build $ make`
 
 A library called `Restitution.hpp` will be configured using the new parameters and placed in the build folder.
 
