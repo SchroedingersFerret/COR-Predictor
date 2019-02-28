@@ -23,196 +23,6 @@
 #ifndef COR_LIB_HPP_
 #define COR_LIB_HPP_
 
-//generates a random double between 0 and 1
-double cor::NextRand()
-{
-	double r = rand() % RAND_MAX + (RAND_MAX/2 - 1);
-	r /= RAND_MAX;
-	return r;
-}
-
-//generates a random bool
-bool cor::rand_bool()
-{
-	int rnd = rand() % (RAND_MAX-1);
-	rnd /= (RAND_MAX-1)/2;
-	if (rnd==1)
-		return true;
-	if (rnd==0)
-		return false;
-	else
-		return rand_bool();
-}
-
-//Evaluates Chebyshev approximation at x with coefficients from param[]
-double cor::Chebyshev(double x, std::vector<double> param)
-{
-	int ni = param.size();
-	double b1 = 0.f, b2 = 0.f;
-	for (int i=ni-1; i>0; --i)
-	{
-		double temp = b1;
-		b1 = 2.f*x*b1-b2+param[i];
-		b2 = temp;
-	}
-	return x*b1-b2+param[0];
-}
-
-//combines material properties
-double cor::combine(double x, double y)
-{
-	return sqrt(0.5*(x*x + y*y));
-}
-
-//returns the approximate COR with independent variables x[] and coefficients parameters[][]
-double cor::f(std::vector<double> x, parameters param)
-{
-	double y1 = Chebyshev(x[0],param.c[0]);
-	y1 /= Chebyshev(x[2],param.c[1]);
-	y1 /= Chebyshev(x[4],param.c[2]);
-	double y2 = Chebyshev(x[1],param.c[0]);
-	y2 /= Chebyshev(x[3],param.c[1]);
-	y2 /= Chebyshev(x[5],param.c[2]);
-	
-	return 3.1*combine(y1,y2)/Chebyshev(x[6],param.c[3]);
-}
-
-//Returns a nearby point
-std::vector<double> cor::genetic::nearbyPoint(std::vector<double> x)
-{
-	std::vector<double> newx(nx);
-	for (int i=0; i<nx; ++i)
-	{
-		newx[i] = x[i]+x[i]*COR.NextRand();
-	}
-	return newx;
-}
-
-//Returns a modifier if nearby points are not in the acceptible range for the COR
-double cor::genetic::nearbyPointTest(std::vector<double> x, parameters param)
-{
-	double y = COR.f(nearbyPoint(x),param);
-	if (y > 1.f)
-		return y-1.f;
-	if (y < 0)
-		return y;
-	return 0;
-}
-
-//gets the residual of each datapoint
-std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param)
-{
-	std::vector<double> residuals(2*n_data);
-	for (int i=0; i<n_data; ++i)
-	{
-		residuals[i] = y[i]-COR.f(x[i],param);
-		//residuals[n_data+i] = nearbyPointTest(x[i],param);
-	}
-	return residuals;
-}
-
-//returns the sum of the square of each residual
-double cor::genetic::SumOfSquares(std::vector<double> residuals)
-{
-	double sum;
-	int ni = residuals.size();
-	for (int i=0; i<ni; ++i)
-		sum += residuals[i]*residuals[i];
-	return sum;
-}
-
-//encodes the parameters into an offset binary array
-genome cor::genetic::encode(parameters param)
-{
-	genome w;
-	int ni = param.c.size();
-	int nj = param.c[0].size();
-	for (int i=0; i<ni; ++i)
-	{
-		for (int j=0; j<nj; ++j)
-		{
-			double sum = param.c[i][j];
-			w.chromosome[i][j*64] = 1;
-			if (param.c[i][j] < 0)
-			{
-				w.chromosome[i][j*64] = 0;
-				sum *= -1;
-			}
-			w.chromosome[i][j*64+1] = 0;
-			if ((int)(0.5+sum)==1)
-				w.chromosome[i][j*64+1] = 1;
-			double d = 2.f;
-			for (int k=2; k<64; ++k)
-			{
-				if (w.chromosome[i][j*64+k-1])
-					sum -= 1.f/d;
-				w.chromosome[i][j*64+k] = 0;
-				if ((int)(0.5+d*sum) == 1)
-					w.chromosome[i][j*64+k] = 1;
-				d *= 2;
-			}
-		}
-	}
-	return w;
-}
-
-//recovers the parameters from a binary chromosome
-parameters cor::genetic::decode(genome w)
-{
-	parameters param;
-	int ni = param.c.size();
-	int nj = param.c[0].size();
-	for (int i=0; i<ni; ++i)
-	{
-		for (int j=0; j<nj; ++j)
-		{
-			double d = 2.f;
-			double sum = 0;
-			for (int k=1; k<64; ++k)
-			{
-				if (w.chromosome[i][j*64+k])
-					sum += 1.f/d;
-				d *= 2;
-			}
-			param.c[i][j] = sum + 1.f/d;
-			if (!w.chromosome[i][j*64])
-				param.c[i][j] *= -1;
-		}
-	}
-
-	return param;
-}
-
-//partition function for quicksort_index
-int cor::genetic::partition(std::vector<double> &cost, std::vector<int> &index, int low, int high)
-{
-	double pivot = cost[low];
-	int i = low;
-	for (int j=low+1; j<high; ++j)
-	{
-		if (cost[j] <= pivot)
-		{
-			i++;
-			std::swap(cost[i],cost[j]);
-			std::swap(index[i],index[j]);
-		}
-	}
-	std::swap(cost[i],cost[low]);
-	std::swap(index[i],index[low]);
-	return i;
-}
-
-//quicksorts indices by cost
-void cor::genetic::quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high)
-{
-	if (low < high)
-	{
-		int pi = partition(cost, index, low, high);
-		quicksort_index(cost, index, low, pi);
-		quicksort_index(cost, index, pi+1, high);
-	}
-}
-
 //reads and applies settings
 void cor::Get_settings()
 {
@@ -235,8 +45,6 @@ void cor::Get_settings()
 		fin >> ch;
 	}while(ch!='=');
 	fin >> n_gpool;
-	population.resize(n_gpool);
-	squareSums.resize(n_gpool);
 	n_repro = n_gpool/2;
 
 	do
@@ -258,7 +66,6 @@ void cor::Get_settings()
 	fin >> error;
 
 	fin.close();
-	
 }
 
 //reads 1d csv files
@@ -357,7 +164,7 @@ void cor::Get_y()
 }
 
 //asks user whether to begin optimization with completely random population
-bool cor::genetic::Query_random()
+bool cor::Query_random()
 {
 	std::cout << "Initiate with random values? (Convergence will take longer)\nEnter y/n: ";
 	char input;
@@ -376,9 +183,8 @@ bool cor::genetic::Query_random()
 					break;
 	}
 }
-
 //asks user whether to initialize elite population with parameters read from file
-bool cor::genetic::Query_initiate()
+bool cor::Query_initiate()
 {
 	std::cout << "Initiate with these values?\nEnter y/n: ";
 	char input;
@@ -399,7 +205,7 @@ bool cor::genetic::Query_initiate()
 }
 
 //returns a boolean operator to instruct program whether to randomize elite population
-bool cor::genetic::Use_random()
+bool cor::Use_random()
 {
 	std::ifstream fin;
 	fin.open("cor_parameters.csv");
@@ -414,13 +220,156 @@ bool cor::genetic::Use_random()
 	return Query_initiate();
 }
 
+//generates a random double between -1.0 and 1.0
+double cor::NextRand()
+{
+	double r = rand() % RAND_MAX + (RAND_MAX/2 - 1);
+	r /= RAND_MAX;
+	return r;
+}
+
+//generates a random bool
+bool cor::rand_bool()
+{
+	int rnd = rand() % (RAND_MAX-1);
+	rnd /= (RAND_MAX-1)/2;
+	if (rnd==1)
+		return true;
+	if (rnd==0)
+		return false;
+	else
+		return rand_bool();
+}
+
+//Evaluates Chebyshev approximation at x with coefficients from param[]
+double cor::Chebyshev(double x, std::vector<double> param)
+{
+	int ni = param.size();
+	double b1 = 0.f, b2 = 0.f;
+	for (int i=ni-1; i>0; --i)
+	{
+		double temp = b1;
+		b1 = 2.f*x*b1-b2+param[i];
+		b2 = temp;
+	}
+	return x*b1-b2+param[0];
+}
+
+//combines material properties
+double cor::combine(double x, double y)
+{
+	return sqrt(0.5*(x*x + y*y));
+}
+
+//returns the approximate COR with independent variables x[] and coefficients parameters[][]
+double cor::f(std::vector<double> x, parameters param)
+{
+	double y1 = Chebyshev(x[0],param.c[0]);
+	y1 /= Chebyshev(x[2],param.c[1]);
+	y1 /= Chebyshev(x[4],param.c[2]);
+	double y2 = Chebyshev(x[1],param.c[0]);
+	y2 /= Chebyshev(x[3],param.c[1]);
+	y2 /= Chebyshev(x[5],param.c[2]);
+	
+	return 3.1*combine(y1,y2)/Chebyshev(x[6],param.c[3]);
+}
+
+//gets the residual of each datapoint
+std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param)
+{
+	std::vector<double> residuals(n_data);
+	for (int i=0; i<n_data; ++i)
+	{
+		double f = COR.f(x[i],param);
+		double penalty = 0.f;
+		if ((int) f >= 1)
+			penalty = f - 1.f;
+		if (f < 0 )
+			penalty = f;
+		residuals[i] = y[i]-f-penalty;
+	}
+	return residuals;
+}
+
+//returns the sum of the square of each residual
+double cor::genetic::SumOfSquares(std::vector<double> residuals)
+{
+	double sum;
+	int ni = residuals.size();
+	for (int i=0; i<ni; ++i)
+		sum += residuals[i]*residuals[i];
+	return sum;
+}
+
+//encodes the parameters into an offset binary array
+genome cor::genetic::encode(parameters param)
+{
+	genome w;
+	int ni = param.c.size();
+	int nj = param.c[0].size();
+	for (int i=0; i<ni; ++i)
+	{
+		for (int j=0; j<nj; ++j)
+		{
+			double sum = param.c[i][j];
+			w.chromosome[i][j*64] = 1;
+			if (param.c[i][j] < 0)
+			{
+				w.chromosome[i][j*64] = 0;
+				sum *= -1;
+			}
+			w.chromosome[i][j*64+1] = 0;
+			if ((int)(0.5+sum)==1)
+				w.chromosome[i][j*64+1] = 1;
+			double d = 2.f;
+			for (int k=2; k<64; ++k)
+			{
+				if (w.chromosome[i][j*64+k-1])
+					sum -= 1.f/d;
+				w.chromosome[i][j*64+k] = 0;
+				if ((int)(0.5+d*sum) == 1)
+					w.chromosome[i][j*64+k] = 1;
+				d *= 2;
+			}
+		}
+	}
+	return w;
+}
+
+//recovers the parameters from a binary chromosome
+parameters cor::genetic::decode(genome w)
+{
+	parameters param;
+	int ni = param.c.size();
+	int nj = param.c[0].size();
+	for (int i=0; i<ni; ++i)
+	{
+		for (int j=0; j<nj; ++j)
+		{
+			double d = 2.f;
+			double sum = 0;
+			for (int k=1; k<64; ++k)
+			{
+				if (w.chromosome[i][j*64+k])
+					sum += 1.f/d;
+				d *= 2;
+			}
+			param.c[i][j] = sum + 1.f/d;
+			if (!w.chromosome[i][j*64])
+				param.c[i][j] *= -1;
+		}
+	}
+
+	return param;
+}
+
 //reads parameter array from file
-parameters cor::Get_parameters()
+parameters cor::genetic::Get_parameters()
 {
 	parameters param;
 
 	
-		std::vector<std::vector<double> > temp = read_csv2d("cor_parameters.csv");
+		std::vector<std::vector<double> > temp = COR.read_csv2d("cor_parameters.csv");
 		if (temp.size() != param.c.size() || temp[0].size() != param.c[0].size())
 		{
 
@@ -433,33 +382,62 @@ parameters cor::Get_parameters()
 }
 
 //fills a parameter array with random doubles
-parameters cor::Get_random_parameters()
+parameters cor::genetic::Get_random_parameters()
 {
 	parameters param;
 	int ni = param.c.size();
 	int nj = param.c[0].size();
 	for (int i=0; i<ni; ++i)
 		for (int j=0; j<nj; ++j)
-			param.c[i][j] = NextRand();
+			param.c[i][j] = COR.NextRand();
 		
 	return param;
 }
 
-void cor::genetic::Initiate()
+//partition function for quicksort_index
+int cor::genetic::partition(std::vector<double> &cost, std::vector<int> &index, int low, int high)
+{
+	double pivot = cost[low];
+	int i = low;
+	for (int j=low+1; j<high; ++j)
+	{
+		if (cost[j] <= pivot)
+		{
+			i++;
+			std::swap(cost[i],cost[j]);
+			std::swap(index[i],index[j]);
+		}
+	}
+	std::swap(cost[i],cost[low]);
+	std::swap(index[i],index[low]);
+	return i;
+}
+
+//quicksorts indices by cost
+void cor::genetic::quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high)
+{
+	if (low < high)
+	{
+		int pi = partition(cost, index, low, high);
+		quicksort_index(cost, index, low, pi);
+		quicksort_index(cost, index, pi+1, high);
+	}
+}
+
+void cor::genetic::Initiate(std::vector<genome> &population,std::vector<double> &squareSums)
 {
 	std::vector<genome> bin (n_initial);
 	parameters param;
 	std::vector<double> cost (n_initial);
 	std::vector<int> index (n_initial);
-	bool random = Use_random();
 	//fills the elite population with the parameters read from file unless user specifies an entirely random population
-	if (!random)
-		param = COR.Get_parameters();
+	if (!random_parameters)
+		param = Get_parameters();
 	
 	for (int i=0; i<n_elite; ++i)
 	{
-		if (random)
-			param = COR.Get_random_parameters();
+		if (random_parameters)
+			param = Get_random_parameters();
 		
 		std::vector<double> residuals = GetResiduals(y,x,param);
 		
@@ -471,7 +449,7 @@ void cor::genetic::Initiate()
 	//The remaining population is initialized randomly
 	for (int i=n_elite; i<n_initial; ++i)
 	{
-		param = COR.Get_random_parameters();
+		param = Get_random_parameters();
 		
 		std::vector<double> residuals = GetResiduals(y,x,param);
 		cost[i] = SumOfSquares(residuals);
@@ -501,7 +479,7 @@ void cor::genetic::shuffle(std::vector<int> &index)
 }
 
 //performs tournament selection on the chromosome population
-void cor::genetic::tournament()
+void cor::genetic::tournament(std::vector<genome> &population,std::vector<double> &squareSums)
 {
 	std::vector<int> index(n_gpool);
 	std::vector<genome> bin = population;
@@ -528,7 +506,7 @@ void cor::genetic::tournament()
 }
 
 //performs uniform crossover reproduction on the chromosomes
-void cor::genetic::reproduction()
+void cor::genetic::reproduction(std::vector<genome> &population)
 {
 	int k = 0;
 	for (int i=n_repro; i<n_repro+n_repro/2; ++i)
@@ -557,7 +535,7 @@ void cor::genetic::reproduction()
 }
 
 //ranks the chromosomes by cost
-void cor::genetic::rankChromosomes()
+void cor::genetic::rankChromosomes(std::vector<genome> &population, std::vector<double> &squareSums)
 {
 	std::vector<genome> bin = population;
 	parameters param;
@@ -581,7 +559,7 @@ void cor::genetic::rankChromosomes()
 }
 
 //performs mutations on the chromosome population
-void cor::genetic::mutate()
+void cor::genetic::mutate(std::vector<genome> &population,std::vector<double> &squareSums)
 {
 	
 	std::vector<genome> bin = population;
@@ -618,7 +596,7 @@ void cor::genetic::mutate()
 		int j_mutate = rand() % nj;
 		population[i_gpool].chromosome[i_mutate].flip(j_mutate);
 	}
-	rankChromosomes();
+	rankChromosomes(population,squareSums);
 }
 
 //returns the percentage of differing bits between two chromosomes
@@ -640,7 +618,7 @@ double cor::genetic::percentDifference(genome individual1, genome individual2)
 }
 
 //returns the diversity of the population
-double cor::genetic::getDiversity()
+double cor::genetic::getDiversity(std::vector<genome> &population)
 {
 	double diversity = 0.f;
 	for (int i=1; i<n_gpool; ++i)
@@ -666,13 +644,226 @@ void cor::genetic::BottleneckError()
 }
 
 //checks the diversity of the population and aborts if it is too large or small
-void cor::genetic::CheckDiversity()
+void cor::genetic::CheckDiversity(std::vector<genome> &population)
 {
-	double diversity = getDiversity();
+	double diversity = getDiversity(population);
 	if (diversity > 0.50)
 		DivergenceError();
 	if (diversity < 0.01)
 		BottleneckError();
+}
+
+//execute genetic algorithm
+void cor::genetic::run()
+{
+	//population stores each binary genome
+	std::vector<genome> population(n_gpool);
+	//sum of the square of each residual
+	std::vector<double> squareSums(n_gpool);
+	
+	GENETIC.Initiate(population,squareSums);
+	
+	int iterations = 0;
+	while(squareSums[0] > error)
+	{
+		
+		GENETIC.tournament(population,squareSums);
+		
+		GENETIC.reproduction(population);
+		
+		GENETIC.rankChromosomes(population,squareSums);
+		
+		GENETIC.mutate(population,squareSums);
+		std::cout << "S = " << squareSums[0] << "\n";
+		iterations++;
+		if (iterations >= 100)
+		{
+			GENETIC.CheckDiversity(population);
+			iterations = 0;
+		}
+	};
+	param  = GENETIC.decode(population[0]);
+}
+
+//partition function for quicksort_x
+int cor::anneal::partition(std::vector<double> &value, int low, int high)
+{
+	double pivot = value[low];
+	int i = low;
+	for (int j=low+1; j<high; ++j)
+	{
+		if (value[j] <= pivot)
+		{
+			i++;
+			std::swap(value[i],value[j]);
+		}
+	}
+	std::swap(value[i],value[low]);
+	return i;
+}
+
+//quicksorts values by cost
+void cor::anneal::quicksort_x(std::vector<double> &value, int low, int high)
+{
+	if (low < high)
+	{
+		int pi = partition(value, low, high);
+		quicksort_x(value, low, pi);
+		quicksort_x(value, pi+1, high);
+	}
+}
+
+//returns the range of the indendent variables
+std::vector<std::vector<double> > cor::anneal::range(std::vector<std::vector<double> > x)
+{
+	std::vector<std::vector<double> > range(nx, std::vector<double> (2));
+	std::vector<int> indices(n_data);
+	for (int i=0; i<nx; ++i)
+	{
+		std::vector<double> value(n_data);
+		for (int j=0; j<n_data; ++j)
+			value[j] = x[j][i];
+		quicksort_x(value,0,n_data);
+		range[i][0] = value[0];
+		range[i][1] = value[n_data-1];
+	}
+	return range;
+}
+
+
+
+//returns a set of random training points
+std::vector<std::vector<double> > cor::anneal::random_points(std::vector<std::vector<double> > range)
+{
+	std::vector<std::vector<double> > points(n_data, std::vector<double> (nx));
+	for (int i=0; i<n_data; ++i)
+	{
+		for (int j=0; j<nx; ++j)
+		{
+			double r = ((double) rand() / (RAND_MAX));
+			points[i][j] = range[j][0]+(range[j][1]-range[j][0])*r;
+		}
+	}
+	return points;
+}
+
+//returns neighboring state
+parameters cor::anneal::neighbor(parameters state0)
+{
+	parameters state1;
+	int ni = state0.c.size();
+	int nj = state0.c[0].size();
+	for (int i=0; i<ni; ++i)
+	{
+		for (int j=0; j<nj; ++j)
+		{
+			state1.c[i][j] = state0.c[i][j] + 0.0001*state0.c[i][j]*COR.NextRand();
+		}
+	}
+	return state1;
+}
+
+//gets the residual of each datapoint
+std::vector<double> cor::anneal::GetResiduals(std::vector<std::vector<double> > x_rand, parameters state)
+{
+	std::vector<double> residuals(n_data);
+	for (int i=0; i<n_data; ++i)
+	{
+		double f = COR.f(x_rand[i],state);
+		residuals[i] = 0.f;
+		if ((int) f >= 1)
+			residuals[i] = f - 1.f;
+		if (f < 0 )
+			residuals[i] = f;
+	}
+	
+	return residuals;
+}
+
+//returns the sum of the square of each residual
+double cor::anneal::SumOfSquares(std::vector<double> residuals)
+{
+	double sum;
+	int ni = residuals.size();
+	for (int i=0; i<ni; ++i)
+		sum += residuals[i]*residuals[i];
+	return sum;
+}
+
+//returns ln(n!)
+double cor::anneal::lnfac(double n)
+{
+	if (n <= 0)
+		return 0;
+	double g = 671/128; 
+	std::vector<double> coefficient = {57.1562356658629235,
+									 -59.5979603554754912,
+									 14.1360979747417417,
+									 -0.491913816097620199,
+									 0.339946499848118887e-4,
+									 0.465236289270485756e-4,
+									 -0.983744753048795646e-4,
+									 0.158088703224912494e-3,
+									 -0.210264441724104883e-3,
+									 0.217439618115212643e-3,
+									 -0.164318106536763890e-3,
+									 0.844182239838527433e-4,
+									 -0.261908384015814087e-4,
+									 0.368991826595316234e-5};
+	double lnfac = (n+0.5)*log(n+g+0.5)-(n+g+0.5);
+	double series = 0.999999999999997092;
+	for (int i=0; i<14; ++i)
+		series += coefficient[i]/(n+i+1);
+	return lnfac + log(sqrt(2*pi)*series);
+}
+
+//returns the entropy of a given state
+double cor::anneal::Entropy(parameters state, double energy)
+{
+	double q = (int) energy/FLT_MIN;
+	double ni = state.c.size();
+	double nj = state.c[0].size();
+	double N = ni*nj;
+	return lnfac(q+N-1)-lnfac(q)-lnfac(N-1);
+}
+
+//returns temperature given a change in energy and entropy
+double cor::anneal::Temperature(double delta_energy, double delta_entropy)
+{
+	if (delta_entropy <= 0)
+		return 0;
+	return delta_energy/delta_entropy;
+}
+
+//runs simulated annealing
+void cor::anneal::run()
+{
+	parameters old_state = param;
+	std::vector<std::vector<double> > x_rand = random_points(range(x));
+	double old_energy = SumOfSquares(GetResiduals(x_rand,old_state));
+	cooling_rate = 0.01;
+	double temperature = FLT_MAX, t_step = -cooling_rate*FLT_MAX;
+	while (temperature > 0)
+	{
+		parameters new_state = neighbor(old_state);
+		double new_energy = SumOfSquares(GetResiduals(x_rand,new_state));
+		double delta_energy = new_energy-old_energy;
+		double P = ((double) rand() / (RAND_MAX));
+		
+		double probability;
+		
+		if (delta_energy < 0)
+			probability = 1.f;
+		else
+			probability = exp(-delta_energy/temperature);
+		if (P < probability)
+		{
+			
+			old_state = new_state;
+			old_energy = new_energy;
+		}
+		temperature += t_step;
+	}
 }
 
 //prints the parameters in the terminal
