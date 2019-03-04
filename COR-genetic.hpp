@@ -24,12 +24,12 @@
 #define COR_GENETIC_HPP_
 
 //gets the residual of each datapoint
-std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param)
+std::vector<double> cor::genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters p)
 {
 	std::vector<double> residuals(n_data);
 	for (int i=0; i<n_data; ++i)
 	{
-		double f = COR.f(x[i],param);
+		double f = COR.f(x[i],p);
 		double penalty = 0.f;
 		if ((int) f >= 1)
 			penalty = f - 1.f;
@@ -51,18 +51,18 @@ double cor::genetic::SumOfSquares(std::vector<double> residuals)
 }
 
 //encodes the parameters into an offset binary array
-genome cor::genetic::encode(parameters param)
+genome cor::genetic::encode(parameters p)
 {
 	genome w;
-	int ni = param.c.size();
-	int nj = param.c[0].size();
+	int ni = p.c.size();
+	int nj = p.c[0].size();
 	for (int i=0; i<ni; ++i)
 	{
 		for (int j=0; j<nj; ++j)
 		{
-			double sum = param.c[i][j];
+			double sum = p.c[i][j];
 			w.chromosome[i][j*64] = 1;
-			if (param.c[i][j] < 0)
+			if (p.c[i][j] < 0)
 			{
 				w.chromosome[i][j*64] = 0;
 				sum *= -1;
@@ -88,9 +88,9 @@ genome cor::genetic::encode(parameters param)
 //recovers the parameters from a binary chromosome
 parameters cor::genetic::decode(genome w)
 {
-	parameters param;
-	int ni = param.c.size();
-	int nj = param.c[0].size();
+	parameters p;
+	int ni = p.c.size();
+	int nj = p.c[0].size();
 	for (int i=0; i<ni; ++i)
 	{
 		for (int j=0; j<nj; ++j)
@@ -103,44 +103,44 @@ parameters cor::genetic::decode(genome w)
 					sum += 1.f/d;
 				d *= 2;
 			}
-			param.c[i][j] = sum + 1.f/d;
+			p.c[i][j] = sum + 1.f/d;
 			if (!w.chromosome[i][j*64])
-				param.c[i][j] *= -1;
+				p.c[i][j] *= -1;
 		}
 	}
 
-	return param;
+	return p;
 }
 
 //reads parameter array from file
 parameters cor::genetic::Get_parameters()
 {
-	parameters param;
+	parameters p;
 
 	
 		std::vector<std::vector<double> > temp = COR.read_csv2d("cor_parameters.csv");
-		if (temp.size() != param.c.size() || temp[0].size() != param.c[0].size())
+		if (temp.size() != p.c.size() || temp[0].size() != p.c[0].size())
 		{
 
-			std::cout << "Error: File 'cor_parameters.csv' must be of dimensions " << param.c.size() << "*" << param.c[0].size() << ".\n";
+			std::cout << "Error: File 'cor_parameters.csv' must be of dimensions " << p.c.size() << "*" << p.c[0].size() << ".\n";
 			abort();
 		}
-		param.c = temp;
+		p.c = temp;
 	
-	return param;
+	return p;
 }
 
 //fills a parameter array with random doubles
 parameters cor::genetic::Get_random_parameters()
 {
-	parameters param;
-	int ni = param.c.size();
-	int nj = param.c[0].size();
+	parameters p;
+	int ni = p.c.size();
+	int nj = p.c[0].size();
 	for (int i=0; i<ni; ++i)
 		for (int j=0; j<nj; ++j)
-			param.c[i][j] = COR.RandInit();
+			p.c[i][j] = COR.RandInit();
 		
-	return param;
+	return p;
 }
 
 //partition function for quicksort_index
@@ -176,34 +176,34 @@ void cor::genetic::quicksort_index(std::vector<double> &cost, std::vector<int> &
 void cor::genetic::Initiate(std::vector<genome> &population,std::vector<double> &squareSums)
 {
 	std::vector<genome> bin (n_initial);
-	parameters param;
+	parameters p;
 	std::vector<double> cost (n_initial);
 	std::vector<int> index (n_initial);
 	//fills the elite population with the parameters read from file unless user specifies an entirely random population
 	if (!random_parameters)
-		param = Get_parameters();
+		p = Get_parameters();
 	
 	for (int i=0; i<n_elite; ++i)
 	{
 		if (random_parameters)
-			param = Get_random_parameters();
+			p = Get_random_parameters();
 		
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		std::vector<double> residuals = GetResiduals(y,x,p);
 		
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
-		bin[i] = encode(param);
+		bin[i] = encode(p);
 	}
 	random_parameters = false;
 	//The remaining population is initialized randomly
 	for (int i=n_elite; i<n_initial; ++i)
 	{
-		param = Get_random_parameters();
+		p = Get_random_parameters();
 		
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		std::vector<double> residuals = GetResiduals(y,x,p);
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
-		bin[i] = encode(param);
+		bin[i] = encode(p);
 	}
 	//sorts population by cost
 	quicksort_index(cost,index,0,cost.size());
@@ -286,14 +286,14 @@ void cor::genetic::reproduction(std::vector<genome> &population)
 void cor::genetic::rankChromosomes(std::vector<genome> &population, std::vector<double> &squareSums)
 {
 	std::vector<genome> bin = population;
-	parameters param;
+	parameters p;
 	std::vector<double> cost(n_gpool);
 	std::vector<int> index(n_gpool);
 	
 	for (int i=0; i<n_gpool; ++i)
 	{
-		param = decode(bin[i]);
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		p = decode(bin[i]);
+		std::vector<double> residuals = GetResiduals(y,x,p);
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
 	}
@@ -316,7 +316,7 @@ void cor::genetic::mutate(std::vector<genome> &population,std::vector<double> &s
 	int mmax = (int) (n_gpool*ni*nj*64*pm+1);
 	for (int i=0; i<n_elite; ++i)
 	{
-		parameters param;
+		parameters p;
 		
 		int n_mutate = (int) (ni*nj*pm+1);
 		for (int l=0; l<n_mutate; ++l)
@@ -326,8 +326,8 @@ void cor::genetic::mutate(std::vector<genome> &population,std::vector<double> &s
 			int j_mutate = rand() % nj;
 			bin[i].chromosome[i_mutate].flip(j_mutate);
 		}
-		param = decode(bin[i]);
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		p = decode(bin[i]);
+		std::vector<double> residuals = GetResiduals(y,x,p);
 		double cost = SumOfSquares(residuals);
 		if (cost < squareSums[i])
 		{
@@ -436,7 +436,7 @@ void cor::genetic::run()
 		}
 	};
 	GENETIC.show_least_squares(squareSums[0]);
-	param  = GENETIC.decode(population[0]);
+	p  = GENETIC.decode(population[0]);
 }
 
 #endif /* COR_GENETIC_HPP_ */
