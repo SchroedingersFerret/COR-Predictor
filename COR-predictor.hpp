@@ -123,7 +123,7 @@ class cor
 				void CheckDiversity(std::vector<genome> &population);
 				void show_least_squares(double S);
 			public:
-				void run();
+				static void run();
 		};
 		
 		class anneal
