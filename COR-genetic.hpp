@@ -436,7 +436,7 @@ void cor::genetic::run()
 		}
 	};
 	GENETIC.show_least_squares(squareSums[0]);
-	p  = GENETIC.decode(population[0]);
+	param  = GENETIC.decode(population[0]);
 }
 
 #endif /* COR_GENETIC_HPP_ */
