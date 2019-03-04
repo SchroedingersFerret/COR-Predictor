@@ -259,17 +259,17 @@ bool cor::rand_bool()
 }
 
 //Evaluates Chebyshev approximation at x with coefficients from param[]
-double cor::Chebyshev(double x, std::vector<double> param)
+double cor::Chebyshev(double x, std::vector<double> p)
 {
-	int ni = param.size();
+	int ni = p.size();
 	double b1 = 0.f, b2 = 0.f;
 	for (int i=ni-1; i>0; --i)
 	{
 		double temp = b1;
-		b1 = 2.f*x*b1-b2+param[i];
+		b1 = 2.f*x*b1-b2+p[i];
 		b2 = temp;
 	}
-	return x*b1-b2+param[0];
+	return x*b1-b2+p[0];
 }
 
 //combines material properties
@@ -278,29 +278,29 @@ double cor::combine(double x, double y)
 	return sqrt(0.5*(x*x + y*y));
 }
 
-//returns the approximate COR with independent variables x[] and coefficients parameters[][]
-double cor::f(std::vector<double> x, parameters param)
+//returns the approximate COR with independent variables x[] and coefficients p[][]
+double cor::f(std::vector<double> x, parameters p)
 {
-	double y1 = Chebyshev(x[0],param.c[0]);
-	y1 /= Chebyshev(x[2],param.c[1]);
-	y1 /= Chebyshev(x[4],param.c[2]);
-	double y2 = Chebyshev(x[1],param.c[0]);
-	y2 /= Chebyshev(x[3],param.c[1]);
-	y2 /= Chebyshev(x[5],param.c[2]);
+	double y1 = Chebyshev(x[0],p.c[0]);
+	y1 /= Chebyshev(x[2],p.c[1]);
+	y1 /= Chebyshev(x[4],p.c[2]);
+	double y2 = Chebyshev(x[1],p.c[0]);
+	y2 /= Chebyshev(x[3],p.c[1]);
+	y2 /= Chebyshev(x[5],p.c[2]);
 	
-	return 3.1*combine(y1,y2)/Chebyshev(x[6],param.c[3]);
+	return 3.1*combine(y1,y2)/Chebyshev(x[6],p.c[3]);
 }
 
 //prints the parameters in the terminal
-void cor::Print_parameters(parameters param)
+void cor::Print_parameters(parameters p)
 {
-	int ni = param.c.size();
-	int nj = param.c[0].size();
+	int ni = p.c.size();
+	int nj = p.c[0].size();
 	for (int i=0; i<ni; ++i)
 	{
 		for (int j=0; j<nj; ++j)
 		{
-			std::cout << param.c[i][j] << ",";
+			std::cout << p.c[i][j] << ",";
 		}
 		std::cout << "\n";
 	}
@@ -330,20 +330,20 @@ bool cor::Query_write()
 }
 	
 //runs Query_write() and writes parameters to file depending on user input
-void cor::Write_parameters(parameters param)
+void cor::Write_parameters(parameters p)
 {
 	bool write = Query_write();
 	if (write)
 	{
 		std::ofstream fout;
 		fout.open("cor_parameters.csv");
-		int ni = param.c.size();
-		int nj = param.c[0].size();
+		int ni = p.c.size();
+		int nj = p.c[0].size();
 		for (int i=0; i<ni; ++i)
 		{
 			for (int j=0; j<nj; ++j)
 			{
-				fout << param.c[i][j];
+				fout << p.c[i][j];
 				if (j != nj-1)
 					fout << ",";
 			}
