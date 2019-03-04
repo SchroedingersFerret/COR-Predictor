@@ -32,6 +32,7 @@
 #include <bitset>
 #include <stdlib.h>
 #include <thread>
+#include <pthread.h>
 
 //initial population size
 static int n_initial;
