@@ -31,8 +31,6 @@
 #include <time.h>
 #include <bitset>
 #include <stdlib.h>
-#include <thread>
-#include <pthread.h>
 
 //initial population size
 static int n_initial;
@@ -124,7 +122,7 @@ class cor
 				void CheckDiversity(std::vector<genome> &population);
 				void show_least_squares(double S);
 			public:
-				static void run();
+				void run();
 		};
 		
 		class anneal
