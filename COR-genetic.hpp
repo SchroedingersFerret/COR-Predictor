@@ -403,7 +403,7 @@ void cor::genetic::CheckDiversity(std::vector<genome> &population)
 //displays least squares regression
 void cor::genetic::show_least_squares(double S)
 {
-	std::cout << "\rS = " << S << std::flush;
+	std::cout << "\rS = " << S << "\t" << std::flush;
 }
 
 //execute genetic algorithm
