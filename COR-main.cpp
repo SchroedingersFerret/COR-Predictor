@@ -36,7 +36,8 @@ int main()
 	COR.Get_y();
 	random_parameters = COR.Use_random();
 	clock_t tStart = clock();
-	GENETIC.run();
+	std::thread t1(&GENETIC.run);
+	t1.join();
 	ANNEAL.run(param);
 	std::cout << "\n\nParameters found:\n\n" ;
 	COR.Print_parameters(param);
