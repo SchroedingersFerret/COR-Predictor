@@ -1,6 +1,6 @@
 COR Predictor 
 =============
-version 0.2
+version 0.3
 
 By: J. Ball (SchroedingersFerret)
 
@@ -12,7 +12,7 @@ COR Predictor does this using a simple supervised learning process. The program 
 
 ---
 
-Files
+Files:
 
 In addition to the executable, COR Predictor makes use of the following files:
  
@@ -53,35 +53,28 @@ This file is generated at the end of optimization and contains the best-fitting 
 
 ---
 
-Building COR Predictor
+Building COR Predictor:
 
 COR Predictor is built by using CMake to generate a makefile which can be used to build the executables. The executables need to be moved to the parent folder with the other files before they can be run.
 
 * Gnu+Linux
 
-In the terminal, navigate to the parent directory `~/COR-Predictor-0.2-alpha`. Create the build folder with the command
-
-`~/COR-Predictor-0.2-alpha $ mkdir build`
-
-Next change to the build directory with the command
-
-`~/COR-Predictor-0.2-alpha $ cd build`
+In the terminal, navigate to the build folder in the parent directory `~/COR-Predictor-0.3-alpha` with the command 
+`~ $ cd COR-Predictor-0.3-alpha/build`
 
 Run cmake with the command 
 
-`~/COR-Predictor-0.2-alpha/build $ cmake ..`
+`~/COR-Predictor-0.3-alpha/build $ cmake ..`
 
 and make the executable with 
 
-`~/COR-Predictor-0.2-alpha/build $ make`
+`~/COR-Predictor-0.3-alpha/build $ make`
 
-Two executable will be created in the build directory. Move them to the parent folder using a file manager or with
+The executable will be created in the build directory. 
 
-`~/COR-Predictor-0.2-alpha/build $ mv COR-Predictor make-CMakeLists ~/COR-Predictor-1.0`
+Run COR Predictor by entering the command
 
-Run COR Predictor by navigating back to the parent directory and entering
-
-`~/COR-Predictor-0.2-alpha $ ./COR-Predictor`
+`~/COR-Predictor-0.3-alpha/build $ ./COR-Predictor`
 
 * Windows
 
@@ -91,12 +84,12 @@ In the command line, enter the command
 
 or run the program from the start menu, Program Files, or a desktop shortcut.
 
-In the top entry of the GUI, enter the location of the parent directory.
+In the top entry of the GUI, enter the location of the build folder.
 No configuration is necessary. Simply press 'Generate' to create the makefile.
 
 ---
 
-Using COR Predictor
+Using COR Predictor:
 
 COR Predictor uses a genetic algorithm to fit a set of parameters to the training data. The genetic algorithm starts by creating an initial set of parameter configurations and selecting a percentage of them that best fit the training data as a gene pool. These configurations are encoded as 2-d bit arrays. 
 
@@ -106,7 +99,7 @@ A percentage of all the bits in the entire population is then selected to be mut
 
 After mutation occurs, the iterative process starts over and repeats until an error tolerance specified by the user is reached. The process of selecting the best-fitting configurations combined with scrambling the bits using reproduction and mutation efficiently searches the objective function space for an optimal configuration.
 
-Settings
+Settings:
 
 When COR Predictor is run, the program first reads the file `settings.txt` to obtain the settings used to initiate optimization. These settings strongly determine the successfulness of optimization. They must be listed in the file with the syntax
 
@@ -146,15 +139,15 @@ Running COR Predictor
 
 COR Predictor is run by entering the command 
 
-`~/COR-Predictor-master $ ./COR-Predictor`
+`~/COR-Predictor-3.0-alpha/build $ ./COR-Predictor`
 
-while in the parent directory. 
+while in the build folder. 
 
 Upon startup, the program checks if an existing parameter file exists and asks the user whether to initiate using the file if one is found or to start with random configurations. If the user responds "y", COR predictor will continue optimization from where it left off. If the user responds "n", the program will start from scratch. 
 
 Once the program enters the main loop, the program will display the least squares error for each iteration so that the user can track its progress. The main loop will continue until the specified tolerance is reached or the user stops the program. If the required tolerance is reached the program will ask the user whether to write the new parameter configuration to file. If the user responds "y", the new configuration will be saved, overwriting the previous one. If the user responds "n", the new configuration will be discarded. 
 
-Overall, the entire process should take no longer than several minutes for set of good-quality data with little noise. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster.
+Overall, the entire process should take no longer one minute for a set of good-quality data with little noise. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster.
 
 Troubleshooting
 
@@ -164,7 +157,7 @@ Each of these files must be in the same folder as the executable.
 
 * `cor_x.csv`/`cor_y.csv` is/are the wrong dimension(s).
 
-Each row of `cor_x.csv` must have 8 columns. Each row of `cor_y.csv` must have 1 column.
+Each row of `cor_x.csv` must have 7 columns. Each row of `cor_y.csv` must have 1 column.
 
 * `cor_x.csv` and `cor_y.csv` do not have the same number of entries.
 
@@ -176,7 +169,7 @@ The fitness of the starting population can be improved somewhat by increasing th
 
 * The iterations proceed very slowly.
 
-The gene pool size increases the number of operations performed per iteration. For slower computers, the gene pool size should not be much larger than 100.
+The gene pool size increases the number of operations performed per iteration. For slower computers, the gene pool size should not be much larger than 50.
 
 * Population divergence 
 
@@ -191,45 +184,15 @@ Since the number of members in the population is fixed, its diversity decreases 
 Try decreasing the size of the elite population or increasing the mutation rate.
 If this does not help, change the least squares error tolerance to a less-ambitious estimate and use a series of optimizations to reach the required tolerance.
 
-Generating a Function 
-
-Once the parameters have been fitted using the learning program, a library containing a function can be configured using CMake. 
-
-First, run the executable `make-CMakeLists` by entering this command in the parent directory:
-
-`~/COR-Predictor-0.2-alpha $ ./make-CMakeLists`
-
-This will create a CMakeList file in the folder `function`. Navigate to this folder using 
-
-`~/COR-Predictor-0.2-alpha $ cd function`
-
-Create a build folder using 
-
-`~/COR-Predictor-0.2-alpha/function $ mkdir build`
-
-Navigate to this folder:
-
-`~/COR-Predictor-0.2-alpha/function $ cd build`
-
-Run CMake using 
-
-`~/COR-Predictor-0.2-alpha/function/build $ cmake ..`
-
-and run the makefile:
-
-`~/COR-Predictor-0.2-alpha/function/build $ make`
-
-A library called `Restitution.hpp` will be configured using the new parameters and placed in the build folder.
-
 ---
 
-Credits
+Credits:
 
 The implementation of the genetic algorithm used in COR Predictor is built off of information available in Tao Pang's "An Introduction to Computational Physics," second edition.
 
 ---
 
-Contact 
+Contact:
 
 Contact me at <jball10990@gmail.com>.
 
