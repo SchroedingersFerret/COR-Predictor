@@ -31,7 +31,7 @@ int main()
 	Get_settings();
 	Get_x();
 	Get_y();
-	std::cout << "Welcome to COR Predictor 0.3\n";
+	std::cout << "Welcome to COR Predictor 0.4\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
 	while (!quit_cor)
 		Main_menu();
