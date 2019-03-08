@@ -24,7 +24,7 @@
 #define COR_ANNEAL_HPP_
 
 //partition function for quicksort_x
-int cor::anneal::partition(std::vector<double> &value, int low, int high)
+int anneal::partition(std::vector<double> &value, int low, int high)
 {
 	double pivot = value[low];
 	int i = low;
@@ -41,7 +41,7 @@ int cor::anneal::partition(std::vector<double> &value, int low, int high)
 }
 
 //quicksorts values by cost
-void cor::anneal::quicksort_x(std::vector<double> &value, int low, int high)
+void anneal::quicksort_x(std::vector<double> &value, int low, int high)
 {
 	if (low < high)
 	{
@@ -52,7 +52,7 @@ void cor::anneal::quicksort_x(std::vector<double> &value, int low, int high)
 }
 
 //returns the range of the indendent variables
-std::vector<std::vector<double> > cor::anneal::range(std::vector<std::vector<double> > x)
+std::vector<std::vector<double> > anneal::range(std::vector<std::vector<double> > x)
 {
 	std::vector<std::vector<double> > range(nx, std::vector<double> (2));
 	std::vector<int> indices(n_data);
@@ -69,7 +69,7 @@ std::vector<std::vector<double> > cor::anneal::range(std::vector<std::vector<dou
 }
 
 //returns a set of random training points
-std::vector<std::vector<double> > cor::anneal::random_points(std::vector<std::vector<double> > range)
+std::vector<std::vector<double> > anneal::random_points(std::vector<std::vector<double> > range)
 {
 	int ni = 10*n_data;
 	std::vector<std::vector<double> > points(ni, std::vector<double> (nx));
@@ -77,7 +77,7 @@ std::vector<std::vector<double> > cor::anneal::random_points(std::vector<std::ve
 	{
 		for (int j=0; j<nx; ++j)
 		{
-			double r = COR.rand_double();
+			double r = rand_double();
 			points[i][j] = range[j][0]+(range[j][1]-range[j][0])*r;
 		}
 	}
@@ -85,13 +85,13 @@ std::vector<std::vector<double> > cor::anneal::random_points(std::vector<std::ve
 }
 
 //returns a random number from an gaussian distribution
-double cor::anneal::Gaussian_move(double mean, double T)
+double anneal::Gaussian_move(double mean, double T)
 {
 	double u,v,x,xx;
 	do
 	{
-		u = COR.RandInit();
-		v = COR.RandInit();
+		u = RandInit();
+		v = RandInit();
 		x = 1.71552776992141*(v-0.5)/u;
 		xx = x*x;
 	}while(xx >= 5.f-5.13610166675097*u && 
@@ -101,7 +101,7 @@ double cor::anneal::Gaussian_move(double mean, double T)
 }
 	
 //returns neighboring state
-parameters cor::anneal::neighbor(parameters state0,double temperature)
+parameters anneal::neighbor(parameters state0,double temperature)
 {
 	parameters state1;
 	int ni = state0.c.size();
@@ -117,25 +117,25 @@ parameters cor::anneal::neighbor(parameters state0,double temperature)
 }
 
 //gets the residual of each datapoint
-std::vector<double> cor::anneal::GetResiduals(std::vector<std::vector<double> > x_rand, parameters state)
+std::vector<double> anneal::GetResiduals(std::vector<std::vector<double> > x_rand, parameters state)
 {
 	int ni = x_rand.size();
 	std::vector<double> residuals(ni);
 	for (int i=0; i<ni; ++i)
 	{
-		double f = COR.f(x_rand[i],state);
+		double yi = f(x_rand[i],state);
 		residuals[i] = 0.f;
-		if ((int) f >= 1)
-			residuals[i] = f - 1.f;
-		if (f < 0 )
-			residuals[i] = f;
+		if ((int) yi >= 1)
+			residuals[i] = yi - 1.f;
+		if (yi < 0 )
+			residuals[i] = yi;
 	}
 	
 	return residuals;
 }
 
 //returns the sum of the square of each residual
-double cor::anneal::SumOfSquares(std::vector<double> residuals)
+double anneal::SumOfSquares(std::vector<double> residuals)
 {
 	double sum;
 	int ni = residuals.size();
@@ -145,7 +145,7 @@ double cor::anneal::SumOfSquares(std::vector<double> residuals)
 }
 
 //returns temperature given a change in energy and entropy
-double cor::anneal::Temperature(double new_energy,int accepted)
+double anneal::Temperature(double new_energy,int accepted)
 {
 	return FLT_MAX*new_energy*exp(-accepted);
 }
@@ -159,7 +159,7 @@ double cor::anneal::Temperature(double new_energy,int accepted)
 //against unphysical results, so I want the annealing to tweak the results into 
 //an acceptable range without destroying what the genetic algorithm does. 
 //We'll see if it actually does that if it ever needs to be called.
-void cor::anneal::run(parameters old_state)
+void anneal::run(parameters old_state)
 {
 	std::vector<std::vector<double> > x_rand = random_points(range(x));
 	double old_energy = SumOfSquares(GetResiduals(x_rand,old_state));
@@ -172,7 +172,7 @@ void cor::anneal::run(parameters old_state)
 		double new_energy = SumOfSquares(GetResiduals(x_rand,new_state));
 		double delta_energy = new_energy-old_energy;
 		double new_temperature = Temperature(new_energy,accepted);
-		double P = COR.rand_double();
+		double P = rand_double();
 		double probability;
 		if (delta_energy < 0)
 			probability = 1.f;
