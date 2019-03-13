@@ -85,7 +85,7 @@ std::vector<std::vector<double> > anneal::random_points(std::vector<std::vector<
 }
 
 //returns a random number from an gaussian distribution
-double anneal::Gaussian_move(double mean, double T)
+double anneal::Gaussian_move(double mean, double error)
 {
 	double u,v,x,xx;
 	do
@@ -96,12 +96,11 @@ double anneal::Gaussian_move(double mean, double T)
 		xx = x*x;
 	}while(xx >= 5.f-5.13610166675097*u && 
 		(xx <= 1.036961042583566/u+1.4 || xx <= -4*log(u)));
-	double g = 1.f/(2.f*(v/u+T)*(1.f+1.f/(T)));
-	return mean + g;
+	return mean + mean*error*v/u;
 }
 	
 //returns neighboring state
-parameters anneal::neighbor(parameters state0,double temperature)
+parameters anneal::neighbor(parameters state0,double error)
 {
 	parameters state1;
 	int ni = state0.c.size();
@@ -110,68 +109,35 @@ parameters anneal::neighbor(parameters state0,double temperature)
 	{
 		for (int j=0; j<nj; ++j)
 		{
-			state1.c[i][j] = Gaussian_move(state0.c[i][j],temperature);
+			state1.c[i][j] = Gaussian_move(state0.c[i][j],error);
 		}
 	}
 	return state1;
 }
 
-//gets the residual of each datapoint
-std::vector<double> anneal::GetResiduals(std::vector<std::vector<double> > x_rand, parameters state)
-{
-	int ni = x_rand.size();
-	std::vector<double> residuals(ni);
-	for (int i=0; i<ni; ++i)
-	{
-		double yi = f(x_rand[i],state);
-		residuals[i] = 0.f;
-		if ((int) yi >= 1)
-			residuals[i] = yi - 1.f;
-		if (yi < 0 )
-			residuals[i] = yi;
-	}
-	
-	return residuals;
-}
-
-//returns the sum of the square of each residual
-double anneal::SumOfSquares(std::vector<double> residuals)
-{
-	double sum;
-	int ni = residuals.size();
-	for (int i=0; i<ni; ++i)
-		sum += residuals[i]*residuals[i];
-	return sum;
-}
-
 //returns temperature given a change in energy and entropy
-double anneal::Temperature(double new_energy,int accepted)
+double anneal::Temperature(double initial_temperature, int accepted)
 {
-	return FLT_MAX*new_energy*exp(-accepted);
+	return initial_temperature*exp(-accepted/4);
 }
 
 //runs simulated annealing to make sure predictions are in the accepted range
-
-//This one is iffy. It takes the parameters returned by the genetic algorithm
-//and uses the objective function to test whether a set of random points 
-//give an answer outside [0,1]. So far, this has never happened beyond sets of
-//random unoptimized parameters. Still, I feel there needs to be some safeguard
-//against unphysical results, so I want the annealing to tweak the results into 
-//an acceptable range without destroying what the genetic algorithm does. 
-//We'll see if it actually does that if it ever needs to be called.
-void anneal::run(parameters old_state)
+parameters anneal::run(parameters old_state)
 {
-	std::vector<std::vector<double> > x_rand = random_points(range(x));
-	double old_energy = SumOfSquares(GetResiduals(x_rand,old_state));
-	double old_temperature = FLT_MAX*old_energy;
+	std::vector<std::vector<double> > x_rand = random_points(range(independent));
+	double old_energy = SumOfSquares(GetResiduals(dependent,independent,old_state));
+	double initial_temperature = FLT_MAX*old_energy;
+	double old_temperature = initial_temperature;
 	int accepted = 0;
 	int iterations = 0;
 	while (old_temperature > 0 && iterations < 1000)
 	{
-		parameters new_state = neighbor(old_state,old_temperature);
-		double new_energy = SumOfSquares(GetResiduals(x_rand,new_state));
+		parameters new_state = neighbor(old_state,error);
+		double new_energy = SumOfSquares(GetResiduals(dependent,independent,new_state));
+		
 		double delta_energy = new_energy-old_energy;
-		double new_temperature = Temperature(new_energy,accepted);
+		double new_temperature = Temperature(initial_temperature,accepted);
+		
 		double P = rand_double();
 		double probability;
 		if (delta_energy < 0)
@@ -187,10 +153,7 @@ void anneal::run(parameters old_state)
 		}
 		iterations++;
 	}
-	if (old_energy > 0)
-		run(old_state);
-	else
-		param = old_state;
+	return old_state;
 }
 
 #endif /* COR_ANNEAL_HPP_ */
