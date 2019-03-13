@@ -50,9 +50,9 @@ static int n_data;
 //least squares error tolerance
 static double error;
 //independent variables array size n_data*nx
-static std::vector<std::vector<double> > x;
+static std::vector<std::vector<double> > independent;
 //dependent variable array size n_data
-static std::vector<double> y;
+static std::vector<double> dependent;
 //determines whether initial population contains entirely random parameters
 bool random_parameters = false;
 //quits the program
@@ -61,7 +61,7 @@ bool quit_cor = false;
 class genome
 {
 	public:
-		std::vector<std::bitset<64*10> > chromosome;
+		std::vector<std::bitset<64*4> > chromosome;
 		genome()
 		{
 			chromosome.resize(4);
@@ -74,12 +74,12 @@ class parameters
 		std::vector<std::vector<double> > c;
 		parameters()
 		{
-			c.resize(4,std::vector<double> (10));
+			c.resize(4,std::vector<double> (4));
 		};
 };
 
 //parameter array
-static parameters param;
+static parameters parameters_global;
 
 class cor
 {
@@ -90,19 +90,18 @@ class cor
 		double combine(double x, double y);
 		double Chebyshev(double x, std::vector<double> param);
 		double f(std::vector<double> x, parameters param);	
+		std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param);
+		double SumOfSquares(std::vector<double> residuals);
 };
 
 class genetic : public cor
 {
 	
 	private:
-		std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param);
-		double SumOfSquares(std::vector<double> residuals);
 		genome encode(parameters param);
 		parameters decode(genome w);
 		int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 		void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
-		parameters Get_parameters();
 		parameters Get_random_parameters();
 		void Initiate(std::vector<genome> &population,std::vector<double> &squareSums);
 		void shuffle(std::vector<int> &index);
@@ -117,7 +116,7 @@ class genetic : public cor
 		void CheckDiversity(std::vector<genome> &population);
 		void show_least_squares(double S);
 	public:
-		static void run();
+		void run();
 };
 
 class anneal : public cor
@@ -128,12 +127,10 @@ class anneal : public cor
 		std::vector<std::vector<double> > range(std::vector<std::vector<double> > x);
 		std::vector<std::vector<double> > random_points(std::vector<std::vector<double> > range);
 		double Gaussian_move(double mean, double std_dev);
-		parameters neighbor(parameters state0,double energy);
-		std::vector<double> GetResiduals(std::vector<std::vector<double> > x_rand, parameters state);
-		double SumOfSquares(std::vector<double> residuals);
+		parameters neighbor(parameters state0,double error);
 		double Temperature(double new_energy, int accepted);
 	public:
-		void run(parameters old_state);
+		parameters run(parameters old_state);
 };
 
 void Get_settings();
@@ -141,8 +138,9 @@ std::vector<double> read_csv1d(const char * filename);
 std::vector<std::vector<double> > read_csv2d(const char * filename);
 void write_csv1d(std::vector<double> a, const char * filename);
 void write_csv2d(std::vector<std::vector<double> > a, const char * filename);
-void Get_x();
-void Get_y();
+void Get_independent();
+void Get_dependent();
+void Get_parameters();
 void Point_entry();
 bool Enter_more();
 bool Return_quit();
@@ -155,9 +153,6 @@ void Write_parameters(parameters param);
 void Optimize();
 void Show_main_menu();
 void Main_menu();
-
-static genetic GENETIC;
-static anneal ANNEAL;
 
 #endif /* COR_PREDICTOR_HPP_ */
 
