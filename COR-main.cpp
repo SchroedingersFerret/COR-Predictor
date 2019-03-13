@@ -33,7 +33,7 @@ int main()
 	Get_independent();
 	Get_dependent();
 	Get_parameters();
-	std::cout << "Welcome to COR Predictor 0.3\n";
+	std::cout << "Welcome to COR Predictor 0.4\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
 	while (!quit_cor)
 		Main_menu();
