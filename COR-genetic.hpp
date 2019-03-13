@@ -23,33 +23,6 @@
 #ifndef COR_GENETIC_HPP_
 #define COR_GENETIC_HPP_
 
-//gets the residual of each datapoint
-std::vector<double> genetic::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param)
-{
-	std::vector<double> residuals(n_data);
-	for (int i=0; i<n_data; ++i)
-	{
-		double yi = f(x[i],param);
-		double penalty = 0.f;
-		if ((int) yi >= 1)
-			penalty = yi - 1.f;
-		if (yi < 0 )
-			penalty = yi;
-		residuals[i] = y[i]-yi-penalty;
-	}
-	return residuals;
-}
-
-//returns the sum of the square of each residual
-double genetic::SumOfSquares(std::vector<double> residuals)
-{
-	double sum;
-	int ni = residuals.size();
-	for (int i=0; i<ni; ++i)
-		sum += residuals[i]*residuals[i];
-	return sum;
-}
-
 //encodes the parameters into an offset binary array
 genome genetic::encode(parameters param)
 {
@@ -112,24 +85,6 @@ parameters genetic::decode(genome w)
 	return param;
 }
 
-//reads parameter array from file
-parameters genetic::Get_parameters()
-{
-	parameters param;
-
-	
-		std::vector<std::vector<double> > temp = read_csv2d("cor_parameters.csv");
-		if (temp.size() != param.c.size() || temp[0].size() != param.c[0].size())
-		{
-
-			std::cout << "Error: File 'cor_parameters.csv' must be of dimensions " << param.c.size() << "*" << param.c[0].size() << ".\n";
-			abort();
-		}
-		param.c = temp;
-	
-	return param;
-}
-
 //fills a parameter array with random doubles
 parameters genetic::Get_random_parameters()
 {
@@ -181,14 +136,14 @@ void genetic::Initiate(std::vector<genome> &population,std::vector<double> &squa
 	std::vector<int> index (n_initial);
 	//fills the elite population with the parameters read from file unless user specifies an entirely random population
 	if (!random_parameters)
-		param = Get_parameters();
+		param = parameters_global;
 	
 	for (int i=0; i<n_elite; ++i)
 	{
 		if (random_parameters)
 			param = Get_random_parameters();
 		
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		std::vector<double> residuals = GetResiduals(dependent,independent,param);
 		
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
@@ -200,7 +155,7 @@ void genetic::Initiate(std::vector<genome> &population,std::vector<double> &squa
 	{
 		param = Get_random_parameters();
 		
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		std::vector<double> residuals = GetResiduals(dependent,independent,param);
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
 		bin[i] = encode(param);
@@ -253,6 +208,8 @@ void genetic::tournament(std::vector<genome> &population,std::vector<double> &sq
 	}
 }
 
+
+
 //performs uniform crossover reproduction on the chromosomes
 void genetic::reproduction(std::vector<genome> &population)
 {
@@ -293,7 +250,7 @@ void genetic::rankChromosomes(std::vector<genome> &population, std::vector<doubl
 	for (int i=0; i<n_gpool; ++i)
 	{
 		param = decode(bin[i]);
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		std::vector<double> residuals = GetResiduals(dependent,independent,param);
 		cost[i] = SumOfSquares(residuals);
 		index[i] = i;
 	}
@@ -309,34 +266,29 @@ void genetic::rankChromosomes(std::vector<genome> &population, std::vector<doubl
 //performs mutations on the chromosome population
 void genetic::mutate(std::vector<genome> &population,std::vector<double> &squareSums)
 {
-	std::vector<genome> bin = population;
 	//elite population remains unchanged if mutation increases the cost
-	int ni = bin[0].chromosome.size();
-	int nj = bin[0].chromosome[0].size();
-	int mmax = (int) (n_gpool*ni*nj*64*pm+1);
-	for (int i=0; i<n_elite; ++i)
+	int ni = population[0].chromosome.size();
+	int nj = population[0].chromosome[0].size();
+	int m_elite = (int) (n_elite*ni*nj*pm+1);
+	int m_normal = (int) ((n_gpool-n_elite)*ni*nj*pm+1);
+	for (int i=0; i<m_elite; ++i)
 	{
-		parameters param;
-		
-		int n_mutate = (int) (ni*nj*pm+1);
-		for (int l=0; l<n_mutate; ++l)
-		{
-			
-			int i_mutate = rand() % ni;
-			int j_mutate = rand() % nj;
-			bin[i].chromosome[i_mutate].flip(j_mutate);
-		}
-		param = decode(bin[i]);
-		std::vector<double> residuals = GetResiduals(y,x,param);
+		int i_elite = rand() % n_elite;
+		int i_mutate = rand() % ni;
+		int j_mutate = rand() % nj;
+		genome bin = population[i_elite];
+		bin.chromosome[i_mutate].flip(j_mutate);
+		parameters param = decode(bin);
+		std::vector<double> residuals = GetResiduals(dependent,independent,param);
 		double cost = SumOfSquares(residuals);
-		if (cost < squareSums[i])
+		if (cost < squareSums[i_elite])
 		{
-			population[i] = bin[i];
-			squareSums[i] = cost;
+			population[i_elite] = bin;
+			squareSums[i_elite] = cost;
 		}
 	}
 	//cost increases are accepted in the remaining population
-	for (int i=0; i<mmax; ++i)
+	for (int i=0; i<m_normal; ++i)
 	{
 		int i_gpool = rand() % (n_gpool-n_elite) + n_elite;
 		int i_mutate = rand() % ni;
@@ -379,14 +331,14 @@ double genetic::getDiversity(std::vector<genome> &population)
 //aborts the program if the population diverges
 void genetic::DivergenceError()
 {
-	std::cout << "Error: Population divergence.\n";
+	std::cout << "\nError: Population divergence.\n";
 	abort();
 }
 
 //aborts the program if the population bottlenecks
 void genetic::BottleneckError()
 {
-	std::cout << "Error: Population bottleneck.\n";
+	std::cout << "\nError: Population bottleneck.\n";
 	abort();
 }
 
@@ -394,16 +346,16 @@ void genetic::BottleneckError()
 void genetic::CheckDiversity(std::vector<genome> &population)
 {
 	double diversity = getDiversity(population);
-	if (diversity > 0.50)
+	if (diversity > 0.75)
 		DivergenceError();
-	if (diversity < 0.01)
+	if (diversity < 0.001)
 		BottleneckError();
 }
 
 //displays least squares regression
 void genetic::show_least_squares(double S)
 {
-	std::cout << "\rS = " << S << std::flush;
+	std::cout << std::scientific << "\rS = " << S << std::flush;
 }
 
 //execute genetic algorithm
@@ -413,31 +365,42 @@ void genetic::run()
 	std::vector<genome> population(n_gpool);
 	//sum of the square of each residual
 	std::vector<double> squareSums(n_gpool);
-	
-	GENETIC.Initiate(population,squareSums);
+	anneal ANNEAL;
+	Initiate(population,squareSums);
 	std::cout << "Running genetic algorithm...\n\n";
 	int iterations = 0;
+	double old_S = 0;
+	double new_S = 0;
 	while(squareSums[0] > error)
 	{
+		tournament(population,squareSums);
 		
-		GENETIC.tournament(population,squareSums);
+		reproduction(population);
 		
-		GENETIC.reproduction(population);
+		rankChromosomes(population,squareSums);
 		
-		GENETIC.rankChromosomes(population,squareSums);
+		mutate(population,squareSums);
 		
-		GENETIC.mutate(population,squareSums);
-		
-		GENETIC.show_least_squares(squareSums[0]);
-		iterations++;
-		if (iterations >= 100)
+		new_S = squareSums[0];
+		if (new_S != old_S)
 		{
-			GENETIC.CheckDiversity(population);
+			show_least_squares(squareSums[0]);
+			old_S = new_S;
+		}
+		
+		iterations++;
+		if (iterations >= 200)
+		{
+			CheckDiversity(population);
 			iterations = 0;
+			parameters param = ANNEAL.run(decode(population[0]));
+			double cost = SumOfSquares(GetResiduals(dependent,independent,param));
+			population[0] = encode(param);
+			squareSums[0] = cost;
 		}
 	};
-	GENETIC.show_least_squares(squareSums[0]);
-	param  = GENETIC.decode(population[0]);
+	show_least_squares(squareSums[0]);
+	parameters_global = decode(population[0]);
 }
 
 #endif /* COR_GENETIC_HPP_ */
