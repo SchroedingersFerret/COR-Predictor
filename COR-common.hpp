@@ -83,7 +83,7 @@ std::vector<double> read_csv1d(const char * filename)
 			fin.get(ch);
 		}
 		if (fin >> input)
-			output.push_back(input);
+			output.push_back((double)input);
 	}
 	fin.close();
 	return output;
@@ -112,7 +112,7 @@ std::vector<std::vector<double> > read_csv2d(const char * filename)
 		}
 		if (fin >> input)
 		{
-			datapoint.push_back(input);
+			datapoint.push_back((double)input);
 		}
 	}
 	fin.close();
@@ -151,55 +151,73 @@ void write_csv2d(std::vector<std::vector<double> > a, const char * filename)
 }
 
 //reads the independent variables of the training datapoints
-void Get_x()
+void Get_independent()
 {
 	std::ifstream fin;
-	fin.open("cor_x.csv");
+	fin.open("cor_independent.csv");
 	fin.close();
 	if (fin.fail())
 	{
-		std::cout << "Error: File 'cor_x.csv' not found.\n";
+		std::cout << "Error: File 'cor_independent.csv' not found.\n";
 		abort();
 	}
 	
-	x = read_csv2d("cor_x.csv");
+	independent = read_csv2d("cor_independent.csv");
 	
-	if (x[0].size() != 7)
+	if (independent[0].size() != 7)
 	{
-		std::cout << "Error: File 'cor_x.csv' must be of dimension n*7.\n";
+		std::cout << "Error: File 'cor_independent.csv' must be of dimension n*7.\n";
 		abort();
 	}
-	n_data = x.size();
+	n_data = independent.size();
 	fin.close();
 }
 	
 //reads the dependent variables of the training datapoints
-void Get_y()
+void Get_dependent()
 {
 	std::ifstream fin;
-	fin.open("cor_y.csv");
+	fin.open("cor_dependent.csv");
 	fin.close();
 	if (fin.fail())
 	{
-		std::cout << "Error: File 'cor_y.csv' not found.\n";
+		std::cout << "Error: File 'cor_dependent.csv' not found.\n";
 		abort();
 	}
 	
-	y = read_csv1d("cor_y.csv");
+	dependent = read_csv1d("cor_dependent.csv");
 
-	if (y.size() != x.size())
+	if (dependent.size() != independent.size())
 	{
-		std::cout << "Error: Files 'cor_x.csv' and 'cor_y.csv' must have the same number of entries.\n";
+		std::cout << "Error: Files 'cor_independent.csv' and 'cor_dependent.csv' must have the same number of entries.\n";
 		abort();
 	}
 	
 	for (int i=0; i<n_data; ++i)
 	{
-		if (y[i]<0.f || y[i]>1.f)
+		if (dependent[i]<0.f || dependent[i]>1.f)
 		{
 			std::cout << "Error: The dependent variables must be between 0.0 and 1.0.\n";
 			abort();
 		}
+	}
+}
+
+//reads parameter array from file
+void Get_parameters()
+{
+	std::ifstream fin;
+	fin.open("cor_parameters.csv");
+	fin.close();
+	if (!fin.fail())
+	{
+		std::vector<std::vector<double> > temp = read_csv2d("cor_parameters.csv");
+		if (temp.size() != parameters_global.c.size() || temp[0].size() != parameters_global.c[0].size())
+		{
+			std::cout << "Error: File 'cor_parameters.csv' must be of dimensions " << parameters_global.c.size() << "*" << parameters_global.c[0].size() << ".\n";
+			abort();
+		}
+	parameters_global.c = temp;	
 	}
 }
 
@@ -208,25 +226,25 @@ void Point_entry()
 {
 	double input;
 	std::vector<double> new_point(nx);
-	std::cout << "Enter the yield strength of the first object.\n";
+	std::cout << "Enter the yield strength of the first object in GPa.\n";
 	std::cin >> input;
 	std::cin.get();
 	std::cout << "\n";
 	new_point[0] = input;
 	
-	std::cout << "Enter the yield strength of the second object.\n";
+	std::cout << "Enter the yield strength of the second object in GPa.\n";
 	std::cin >> input;
 	std::cin.get();
 	std::cout << "\n";
 	new_point[1] = input;
 	
-	std::cout << "Enter the Young's modulus of the first object.\n";
+	std::cout << "Enter the Young's modulus of the first object in GPa.\n";
 	std::cin >> input;
 	std::cin.get();
 	std::cout << "\n";
 	new_point[2] = input;
 	
-	std::cout << "Enter the Young's modulus of the second object.\n";
+	std::cout << "Enter the Young's modulus of the second object in GPa.\n";
 	std::cin >> input;
 	std::cin.get();
 	std::cout << "\n";
@@ -244,20 +262,20 @@ void Point_entry()
 	std::cout << "\n";
 	new_point[5] = input;
 	
-	std::cout << "Enter the objects' relative velocity.\n";
+	std::cout << "Enter the objects' relative velocity in m/s.\n";
 	std::cin >> input;
 	std::cin.get();
 	std::cout << "\n";
 	new_point[6] = input;
 	
-	x.push_back(new_point);
+	independent.push_back(new_point);
 	
 	std::cout << "Enter the coefficient of restitution.\n";
 	std::cin >> input;
 	std::cin.get();
 	std::cout << "\n";
 	
-	y.push_back(input);
+	dependent.push_back(input);
 }
 
 //asks if user wants to enter more points
@@ -275,7 +293,7 @@ bool Enter_more()
 					break;
 
 		case 'n':
-		case 'N':	abort();
+		case 'N':	return false;
 					break;
 
 		default	:	return Enter_more();
@@ -286,17 +304,17 @@ bool Enter_more()
 //asks user to return to main menu or quit program
 bool Return_quit()
 {
-	int input;
+	char input;
 	std::cout << "Enter '1' to return to the main menu. Enter '2' to quit.\n";
-	std::cin >> input;
+	std::cin.get(input);
 	std::cin.get();
 	std::cout << "\n";
 	switch(input)
 	{
-		case 1:	return false;
+		case '1':	return false;
 					break;
 
-		case 2:	return true;
+		case '2':	return true;
 					break;
 
 		default	:	return Return_quit();
@@ -311,10 +329,11 @@ void Enter()
 	while (enter_point)
 	{
 		Point_entry();
+		write_csv2d(independent,"cor_independent.csv");
+		write_csv1d(dependent,"cor_dependent.csv");
 		enter_point = Enter_more();
 	}
-	write_csv2d(x,"cor_x.csv");
-	write_csv1d(y,"cor_y.csv");
+	
 	quit_cor = Return_quit();
 }
 	
@@ -357,66 +376,6 @@ bool Use_random()
 	
 	std::cout << "File: 'cor_parameters.csv' found.\n\n";
 	return Query_initiate();
-}
-
-//generates a random double between -1.0 and 1.0
-double cor::RandInit()
-{
-	double r = rand() % RAND_MAX + (RAND_MAX/2 - 1);
-	r /= RAND_MAX;
-	return r;
-};
-
-//generates a random double between 0 and 1.0
-double cor::rand_double()
-{
-	return ((double) rand() / (RAND_MAX));
-};
-
-//generates a random bool
-bool cor::rand_bool()
-{
-	int rnd = rand() % (RAND_MAX-1);
-	rnd /= (RAND_MAX-1)/2;
-	if (rnd==1)
-		return true;
-	if (rnd==0)
-		return false;
-	else
-		return rand_bool();
-}
-
-//Evaluates Chebyshev approximation at x with coefficients from param[]
-double cor::Chebyshev(double x, std::vector<double> param)
-{
-	int ni = param.size();
-	double b1 = 0.f, b2 = 0.f;
-	for (int i=ni-1; i>0; --i)
-	{
-		double temp = b1;
-		b1 = 2.f*x*b1-b2+param[i];
-		b2 = temp;
-	}
-	return x*b1-b2+param[0];
-}
-
-//combines material properties
-double cor::combine(double x, double y)
-{
-	return sqrt(0.5*(x*x + y*y));
-}
-
-//returns the approximate COR with independent variables x[] and coefficients parameters[][]
-double cor::f(std::vector<double> x, parameters param)
-{
-	double y1 = Chebyshev(x[0],param.c[0]);
-	y1 /= Chebyshev(x[2],param.c[1]);
-	y1 /= Chebyshev(x[4],param.c[2]);
-	double y2 = Chebyshev(x[1],param.c[0]);
-	y2 /= Chebyshev(x[3],param.c[1]);
-	y2 /= Chebyshev(x[5],param.c[2]);
-	
-	return 3.1*combine(y1,y2)/Chebyshev(x[6],param.c[3]);
 }
 
 //prints the parameters in the terminal
@@ -473,17 +432,74 @@ void Write_parameters(parameters param)
 
 void Optimize()
 {
+	genetic GENETIC;
 	random_parameters = Use_random();
 	clock_t tStart = clock();
-	std::thread t1(&GENETIC.run);
-	t1.join();
-	ANNEAL.run(param);
+	GENETIC.run();
 	std::cout << "\n\nParameters found:\n\n" ;
-	Print_parameters(param);
-	std::cout << "Execution time: " << ( (double) clock()-tStart)/CLOCKS_PER_SEC << " s\n\n";
-	Write_parameters(param);
+	Print_parameters(parameters_global);
+	std::cout << std::fixed << "Execution time: " << ( (double) clock()-tStart)/CLOCKS_PER_SEC << " s\n\n";
+	Write_parameters(parameters_global);
 	quit_cor = Return_quit();
 }
+
+std::vector<double> pGet_independent()
+{
+	std::vector<double> x(nx);
+	double input;
+	std::cout << "Enter the yield strength of the first object in GPa.\n";
+	std::cin >> input;
+	std::cin.get();
+	std::cout << "\n";
+	x[0] = input;
+	
+	std::cout << "Enter the yield strength of the second object in GPa.\n";
+	std::cin >> input;
+	std::cin.get();
+	std::cout << "\n";
+	x[1] = input;
+	
+	std::cout << "Enter the Young's modulus of the first object in GPa.\n";
+	std::cin >> input;
+	std::cin.get();
+	std::cout << "\n";
+	x[2] = input;
+	
+	std::cout << "Enter the Young's modulus of the second object in GPa.\n";
+	std::cin >> input;
+	std::cin.get();
+	std::cout << "\n";
+	x[3] = input;
+	
+	std::cout << "Enter the density of the first object.\n";
+	std::cin >> input;
+	std::cin.get();
+	std::cout << "\n";
+	x[4] = input;
+	
+	std::cout << "Enter the density of the second object.\n";
+	std::cin >> input;
+	std::cin.get();
+	std::cout << "\n";
+	x[5] = input;
+	
+	std::cout << "Enter the objects' relative velocity in m/s.\n";
+	std::cin >> input;
+	std::cin.get();
+	std::cout << "\n";
+	x[6] = input;
+	
+	return x;
+}	
+
+void Predict()
+{
+	std::vector<double> pred_x = pGet_independent();
+	cor COR;
+	double pred_y = COR.f(pred_x,parameters_global);
+	std::cout << "e = " << pred_y << "\n\n";
+	quit_cor = Return_quit();
+}	
 
 void Show_main_menu()
 {
@@ -540,12 +556,11 @@ void Main_menu()
 									break;
 		case mode.Enum::OPTIMIZE :	Optimize();
 									break;
-		case mode.Enum::PREDICT  : ;
+		case mode.Enum::PREDICT  :  Predict();
 									break;
 		case mode.Enum::QUIT   	 : 	quit_cor = true;
 									break;	
 		default : break;
 	}
-}
 
 #endif /* COR_COMMON_HPP_ */
