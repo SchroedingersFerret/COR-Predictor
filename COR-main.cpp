@@ -22,6 +22,7 @@
 
 #include "COR-predictor.hpp"
 #include "COR-common.hpp"
+#include "COR-cor.hpp"
 #include "COR-genetic.hpp"
 #include "COR-anneal.hpp"
 
@@ -29,9 +30,10 @@ int main()
 {
 	srand((unsigned int)time(NULL));
 	Get_settings();
-	Get_x();
-	Get_y();
-	std::cout << "Welcome to COR Predictor 0.4\n";
+	Get_independent();
+	Get_dependent();
+	Get_parameters();
+	std::cout << "Welcome to COR Predictor 0.3\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
 	while (!quit_cor)
 		Main_menu();
