@@ -389,7 +389,7 @@ void genetic::run()
 		}
 		
 		iterations++;
-		if (iterations >= 200)
+		if (iterations >= 100)
 		{
 			CheckDiversity(population);
 			iterations = 0;
