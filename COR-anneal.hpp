@@ -52,7 +52,7 @@ void anneal::quicksort_x(std::vector<double> &value, int low, int high)
 }
 
 //returns a random number from an gaussian distribution
-double anneal::Gaussian_move(double mean, double error)
+double anneal::Gaussian_move(double mean, double error, int accepted)
 {
 	double u,v,x,xx;
 	do
@@ -63,11 +63,11 @@ double anneal::Gaussian_move(double mean, double error)
 		xx = x*x;
 	}while(xx >= 5.f-5.13610166675097*u && 
 		(xx <= 1.036961042583566/u+1.4 || xx <= -4*log(u)));
-	return mean + mean*error*v/u;
+	return mean + error*v/u*1.f/(n_data*(1+accepted));
 }
 	
 //returns neighboring state
-parameters anneal::neighbor(parameters state0,double error)
+parameters anneal::neighbor(parameters state0,double error,int accepted)
 {
 	parameters state1;
 	int ni = state0.c.size();
@@ -76,7 +76,7 @@ parameters anneal::neighbor(parameters state0,double error)
 	{
 		for (int j=0; j<nj; ++j)
 		{
-			state1.c[i][j] = Gaussian_move(state0.c[i][j],error);
+			state1.c[i][j] = Gaussian_move(state0.c[i][j],error,accepted);
 		}
 	}
 	return state1;
@@ -85,25 +85,24 @@ parameters anneal::neighbor(parameters state0,double error)
 //returns temperature given a change in energy and entropy
 double anneal::Temperature(double initial_temperature, int accepted)
 {
-	return initial_temperature*exp(-accepted/4);
+	return initial_temperature*exp(-sqrt(accepted));
 }
 
 //runs simulated annealing to make sure predictions are in the accepted range
 parameters anneal::run(parameters old_state)
 {
-	std::vector<std::vector<double> > x_rand = random_points(range(independent));
 	double old_energy = SumOfSquares(GetResiduals(dependent,independent,old_state));
 	double initial_temperature = FLT_MAX*old_energy;
 	double old_temperature = initial_temperature;
 	int accepted = 0;
 	int iterations = 0;
-	while (old_temperature > 0 && iterations < 1000)
+	while (old_temperature > 0 && iterations < 10000)
 	{
-		parameters new_state = neighbor(old_state,error);
+		parameters new_state = neighbor(old_state,error,accepted);
 		double new_energy = SumOfSquares(GetResiduals(dependent,independent,new_state));
 		
 		double delta_energy = new_energy-old_energy;
-		double new_temperature = Temperature(initial_temperature,accepted);
+		double new_temperature = Temperature(old_temperature,accepted);
 		
 		double P = rand_double();
 		double probability;
@@ -111,6 +110,7 @@ parameters anneal::run(parameters old_state)
 			probability = 1.f;
 		else
 			probability = exp(-delta_energy/new_temperature);
+		
 		if (P < probability)
 		{
 			old_state = new_state;
