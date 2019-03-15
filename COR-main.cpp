@@ -21,10 +21,10 @@
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "COR-predictor.hpp"
-#include "COR-common.hpp"
 #include "COR-cor.hpp"
 #include "COR-genetic.hpp"
 #include "COR-anneal.hpp"
+#include "COR-common.hpp"
 
 int main()
 {
