@@ -22,8 +22,8 @@
 
 #include "COR-predictor.hpp"
 #include "COR-cor.hpp"
-#include "COR-genetic.hpp"
 #include "COR-anneal.hpp"
+#include "COR-genetic.hpp"
 #include "COR-common.hpp"
 
 int main()
