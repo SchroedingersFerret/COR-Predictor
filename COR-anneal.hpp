@@ -51,39 +51,6 @@ void anneal::quicksort_x(std::vector<double> &value, int low, int high)
 	}
 }
 
-//returns the range of the indendent variables
-std::vector<std::vector<double> > anneal::range(std::vector<std::vector<double> > x)
-{
-	std::vector<std::vector<double> > range(nx, std::vector<double> (2));
-	std::vector<int> indices(n_data);
-	for (int i=0; i<nx; ++i)
-	{
-		std::vector<double> value(n_data);
-		for (int j=0; j<n_data; ++j)
-			value[j] = x[j][i];
-		quicksort_x(value,0,n_data);
-		range[i][0] = value[0];
-		range[i][1] = value[n_data-1];
-	}
-	return range;
-}
-
-//returns a set of random training points
-std::vector<std::vector<double> > anneal::random_points(std::vector<std::vector<double> > range)
-{
-	int ni = 10*n_data;
-	std::vector<std::vector<double> > points(ni, std::vector<double> (nx));
-	for (int i=0; i<ni; ++i)
-	{
-		for (int j=0; j<nx; ++j)
-		{
-			double r = rand_double();
-			points[i][j] = range[j][0]+(range[j][1]-range[j][0])*r;
-		}
-	}
-	return points;
-}
-
 //returns a random number from an gaussian distribution
 double anneal::Gaussian_move(double mean, double error)
 {
