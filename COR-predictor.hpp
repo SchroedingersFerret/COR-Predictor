@@ -61,10 +61,10 @@ bool quit_cor = false;
 class genome
 {
 	public:
-		std::vector<std::bitset<64*4> > chromosome;
+		std::vector<std::bitset<64*5> > chromosome;
 		genome()
 		{
-			chromosome.resize(4);
+			chromosome.resize(5);
 		};
 };
 
@@ -74,7 +74,7 @@ class parameters
 		std::vector<std::vector<double> > c;
 		parameters()
 		{
-			c.resize(4,std::vector<double> (4));
+			c.resize(5,std::vector<double> (5));
 		};
 };
 
