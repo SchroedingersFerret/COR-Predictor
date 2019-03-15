@@ -389,14 +389,14 @@ void genetic::run()
 		}
 		
 		iterations++;
-		if (iterations >= 100)
+		if (iterations >= 50)
 		{
 			CheckDiversity(population);
 			iterations = 0;
 			parameters param = ANNEAL.run(decode(population[0]));
 			double cost = SumOfSquares(GetResiduals(dependent,independent,param));
-			population[0] = encode(param);
-			squareSums[0] = cost;
+			population[n_gpool-1] = encode(param);
+			squareSums[n_gpool-1] = cost;
 		}
 	};
 	show_least_squares(squareSums[0]);
