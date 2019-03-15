@@ -562,5 +562,6 @@ void Main_menu()
 									break;	
 		default : break;
 	}
+}
 
 #endif /* COR_COMMON_HPP_ */
