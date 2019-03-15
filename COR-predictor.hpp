@@ -124,8 +124,6 @@ class anneal : public cor
 	private:
 		int partition(std::vector<double> &value, int low, int high);
 		void quicksort_x(std::vector<double> &value, int low, int high);
-		std::vector<std::vector<double> > range(std::vector<std::vector<double> > x);
-		std::vector<std::vector<double> > random_points(std::vector<std::vector<double> > range);
 		double Gaussian_move(double mean, double std_dev);
 		parameters neighbor(parameters state0,double error);
 		double Temperature(double new_energy, int accepted);
