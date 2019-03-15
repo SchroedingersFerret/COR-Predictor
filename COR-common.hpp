@@ -126,7 +126,7 @@ void write_csv1d(std::vector<double> a, const char * filename)
 	fout.open(filename);
 	int ni = a.size();
 	for (int i=0; i<ni; ++i)
-		fout << a[i] << "\n";
+		fout << std::scientific << a[i] << "\n";
 	fout.close();
 }
 
@@ -141,7 +141,7 @@ void write_csv2d(std::vector<std::vector<double> > a, const char * filename)
 	{
 		for (int j=0; j<nj; ++j)
 		{
-			fout << a[i][j];
+			fout << std::scientific << a[i][j];
 			if (j != nj-1)
 				fout << ",";
 		}
