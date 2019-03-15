@@ -61,10 +61,10 @@ bool quit_cor = false;
 class genome
 {
 	public:
-		std::vector<std::bitset<64*5> > chromosome;
+		std::vector<std::bitset<64*4> > chromosome;
 		genome()
 		{
-			chromosome.resize(5);
+			chromosome.resize(4);
 		};
 };
 
@@ -74,7 +74,7 @@ class parameters
 		std::vector<std::vector<double> > c;
 		parameters()
 		{
-			c.resize(5,std::vector<double> (5));
+			c.resize(4,std::vector<double> (4));
 		};
 };
 
@@ -96,7 +96,6 @@ class cor
 
 class genetic : public cor
 {
-	
 	private:
 		genome encode(parameters param);
 		parameters decode(genome w);
@@ -124,8 +123,8 @@ class anneal : public cor
 	private:
 		int partition(std::vector<double> &value, int low, int high);
 		void quicksort_x(std::vector<double> &value, int low, int high);
-		double Gaussian_move(double mean, double std_dev);
-		parameters neighbor(parameters state0,double error);
+		double Gaussian_move(double mean, double std_dev,int accepted);
+		parameters neighbor(parameters state0,double error,int accepted);
 		double Temperature(double new_energy, int accepted);
 	public:
 		parameters run(parameters old_state);
