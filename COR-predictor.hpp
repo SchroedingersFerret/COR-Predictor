@@ -64,7 +64,7 @@ class genome
 		std::vector<std::bitset<64*5> > chromosome;
 		genome()
 		{
-			chromosome.resize(5);
+			chromosome.resize(4);
 		};
 };
 
@@ -74,7 +74,7 @@ class parameters
 		std::vector<std::vector<double> > c;
 		parameters()
 		{
-			c.resize(5,std::vector<double> (5));
+			c.resize(4,std::vector<double> (5));
 		};
 };
 
