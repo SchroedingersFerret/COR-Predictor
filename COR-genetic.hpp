@@ -379,8 +379,6 @@ void genetic::run()
 		
 		rankChromosomes(population,squareSums);
 		
-		mutate(population,squareSums);
-		
 		new_S = squareSums[0];
 		if (new_S != old_S)
 		{
@@ -398,6 +396,8 @@ void genetic::run()
 			population[n_gpool-1] = encode(param);
 			squareSums[n_gpool-1] = cost;
 		}
+		
+		mutate(population,squareSums);
 	};
 	show_least_squares(squareSums[0]);
 	parameters_global = decode(population[0]);
