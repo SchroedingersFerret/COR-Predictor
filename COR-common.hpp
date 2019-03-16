@@ -124,9 +124,11 @@ void write_csv1d(std::vector<double> a, const char * filename)
 {
 	std::ofstream fout;
 	fout.open(filename);
+	fout.precision(15);
+	fout.setf(std::ios::scientific, std::ios::floatfield);
 	int ni = a.size();
 	for (int i=0; i<ni; ++i)
-		fout << std::scientific << a[i] << "\n";
+		fout << a[i] << "\n";
 	fout.close();
 }
 
@@ -135,13 +137,15 @@ void write_csv2d(std::vector<std::vector<double> > a, const char * filename)
 {
 	std::ofstream fout;
 	fout.open(filename);
+	fout.precision(15);
+	fout.setf(std::ios::scientific, std::ios::floatfield);
 	int ni = a.size();
 	int nj = a[0].size();
 	for (int i=0; i<ni; ++i)
 	{
 		for (int j=0; j<nj; ++j)
 		{
-			fout << std::scientific << a[i][j];
+			fout << a[i][j];
 			if (j != nj-1)
 				fout << ",";
 		}
