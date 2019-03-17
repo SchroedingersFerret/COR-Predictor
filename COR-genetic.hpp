@@ -393,8 +393,8 @@ void genetic::run()
 			iterations = 0;
 			parameters param = ANNEAL.run(decode(population[0]));
 			double cost = SumOfSquares(GetResiduals(dependent,independent,param));
-			population[n_gpool-1] = encode(param);
-			squareSums[n_gpool-1] = cost;
+			population[n_elite-1] = encode(param);
+			squareSums[n_elite-1] = cost;
 		}
 		
 		mutate(population,squareSums);
