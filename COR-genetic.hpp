@@ -128,6 +128,7 @@ void genetic::quicksort_index(std::vector<double> &cost, std::vector<int> &index
 	}
 }
 
+//Initiates genetic optimization with the chosen settings
 void genetic::Initiate(std::vector<genome> &population,std::vector<double> &squareSums)
 {
 	std::vector<genome> bin (n_initial);
@@ -391,6 +392,7 @@ void genetic::run()
 		{
 			CheckDiversity(population);
 			iterations = 0;
+			//simiulated annealing gives periodic 'kicks' to get past local minima
 			parameters param = ANNEAL.run(decode(population[0]));
 			double cost = SumOfSquares(GetResiduals(dependent,independent,param));
 			population[n_elite-1] = encode(param);
