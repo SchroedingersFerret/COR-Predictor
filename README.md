@@ -1,6 +1,6 @@
 COR Predictor 
 =============
-version 0.3
+version 0.4-alpha
 
 By: J. Ball (SchroedingersFerret)
 
@@ -8,7 +8,7 @@ README
 
 COR Predictor is a command line tool for developing a function  that approximates the coefficient of restitution (COR) of two colliding bodies from their physical properties, _without_ knowing the final velocities. 
 
-COR Predictor does this using a simple supervised learning process. The program reads training data from the files `cor_x.csv` and `cor_y.csv` and numerically optimizes a set of 40 parameters to fit the function to the training data. Once the optimization has reached the required accuracy, the parameters are stored in the file `cor_parameters.csv`, which can be called at startup during future optimizations to improve execution times.
+COR Predictor does this using a simple supervised learning process. The program reads training data from the files `cor_independent.csv` and `cor_dependent.csv` and numerically optimizes a set of 20 parameters to fit the function to the training data. Once the optimization has reached the required accuracy, the parameters are stored in the file `cor_parameters.csv`, which can be called at startup during future optimizations to improve execution times.
 
 ---
 
@@ -16,31 +16,31 @@ Files:
 
 In addition to the executable, COR Predictor makes use of the following files:
  
-`cor_x.csv`:
+`cor_independent.csv`:
 
-The file `cor_x.csv` is an n x 7 table containing the independent variables for n training datapoints. The variables represent two sets of three different physical quantities, one for each of two colliding objects, plus the relative velocity of the objects. 
+The file `cor_independent.csv` is an n x 7 table containing the independent variables for n training datapoints. The variables represent two sets of three different physical quantities, one for each of two colliding objects, plus the relative velocity of the objects. 
 
 
 * Yield Strength:
 
-The first quantity, stored in `x[i][0]` and `x[i][1]`, is the yield strength in MPa of objects 1 and 2 respectively. _Yield strength_ here is defined as the limit of elastic behavior, beyond which the stress causes the object to deform plastically. 
+The first quantity, stored in `independent[i][0]` and `independent[i][1]`, is the yield strength in GPa of objects 1 and 2 respectively. _Yield strength_ here is defined as the limit of elastic behavior, beyond which the stress causes the object to deform plastically. 
 
 * Young's Modulus
 
-The second quantities are stored in `x[i][2]` and `x[i][3]` and are the Young's modulus in MPa of objects 1 and 2 respectively. 
+The second quantities are stored in `independent[i][2]` and `independent[i][3]` and are the Young's modulus in GPa of objects 1 and 2 respectively. 
 
 * Density:
 
-`x[i][4]` and `x[i][5]` are the densities in Mg/m^3 of objects 1 and 2 respectively. 
+`independent[i][4]` and `independent[i][5]` are the densities in Mg/m^3 of objects 1 and 2 respectively. 
 
 * Velocity: 
 
-`x[i][6]` is the magnitude of the objects' relative velocity.
+`independent[i][6]` is the magnitude of the objects' relative velocity.
 
 
-`cor_y.csv`:
+`cor_dependent.csv`:
 
-The file `cor_y.csv` is an n x 1 table containing the dependent variables for n training datapoints. Each variable is the COR for the collision represented by each datapoint.
+The file `cor_dependent.csv` is an n x 1 table containing the dependent variables for n training datapoints. Each variable is the COR for the collision represented by each datapoint.
 
 
 `settings.txt`:
@@ -59,22 +59,22 @@ COR Predictor is built by using CMake to generate a makefile which can be used t
 
 * Gnu+Linux
 
-In the terminal, navigate to the build folder in the parent directory `~/COR-Predictor-0.3-alpha` with the command 
-`~ $ cd COR-Predictor-0.3-alpha/build`
+In the terminal, navigate to the build folder in the parent directory `~/COR-Predictor-0.4-alpha` with the command 
+`~ $ cd COR-Predictor-0.4-alpha/build`
 
 Run cmake with the command 
 
-`~/COR-Predictor-0.3-alpha/build $ cmake ..`
+`~/COR-Predictor-0.4-alpha/build $ cmake ..`
 
 and make the executable with 
 
-`~/COR-Predictor-0.3-alpha/build $ make`
+`~/COR-Predictor-0.4-alpha/build $ make`
 
 The executable will be created in the build directory. 
 
 Run COR Predictor by entering the command
 
-`~/COR-Predictor-0.3-alpha/build $ ./COR-Predictor`
+`~/COR-Predictor-0.4-alpha/build $ ./COR-Predictor`
 
 * Windows
 
@@ -133,35 +133,35 @@ This is the least squares error value at which iteration will conclude. It is be
 
 Adding Datapoints
 
-COR Predictor reads training datapoints from the files `cor_x.csv` and `cor_y.csv`. To add a datapoint, simply open the files in a spread sheet and enter the data in the next row below the lowest entry in each file. 
+COR Predictor reads training datapoints from the files `cor_independent.csv` and `cor_dependent.csv`. To add a datapoint, simply open the files in a spread sheet and enter the data in the next row below the lowest entry in each file. Datapoints can also be entered from the main menu.
 
 Running COR Predictor
 
 COR Predictor is run by entering the command 
 
-`~/COR-Predictor-3.0-alpha/build $ ./COR-Predictor`
+`~/COR-Predictor-4.0-alpha/build $ ./COR-Predictor`
 
 while in the build folder. 
 
-Upon startup, the program checks if an existing parameter file exists and asks the user whether to initiate using the file if one is found or to start with random configurations. If the user responds "y", COR predictor will continue optimization from where it left off. If the user responds "n", the program will start from scratch. 
+Upon startup, the program reads the files 'cor_independent.csv', 'cor_dependent.csv', 'cor_parameters.csv', and 'settings.txt' automatically. A main menu will appear with four options. The first opens a dialogue that allows the user to enter a new training datapoint. The second option initializes optimization using the settings read from 'settings.txt'. The third opens a dialogue that predicts a coefficient of restitution from material properties. The third option quits the program.
 
-Once the program enters the main loop, the program will display the least squares error for each iteration so that the user can track its progress. The main loop will continue until the specified tolerance is reached or the user stops the program. If the required tolerance is reached the program will ask the user whether to write the new parameter configuration to file. If the user responds "y", the new configuration will be saved, overwriting the previous one. If the user responds "n", the new configuration will be discarded. 
+If the second option is chosen, the user will be prompted to choose optimization from a random parameter configuration or from an existing configuration if one exists. The program will then display the least squares error for each iteration so that the user can track its progress. The main loop will continue until the specified tolerance is reached or the user stops the program. If the required tolerance is reached the program will ask the user whether to write the new parameter configuration to file. If the user responds "y", the new configuration will be saved, overwriting the previous one. If the user responds "n", the new configuration will be discarded. 
 
-Overall, the entire process should take no longer one minute for a set of good-quality data with little noise. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster.
+Overall, the optimization process could take anywhere from several seconds to several hours depending on the size and quality of the training data. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster.
 
 Troubleshooting
 
-* `settings.txt`/`cor_x.csv`/`cor_y.csv`/`cor_parameters.csv` was not found.
+* `settings.txt`/`cor_independent.csv`/`cor_dependent.csv`/`cor_parameters.csv` was not found.
 
 Each of these files must be in the same folder as the executable.
 
-* `cor_x.csv`/`cor_y.csv` is/are the wrong dimension(s).
+* `cor_independent.csv`/`cor_dependent.csv` is/are the wrong dimension(s).
 
-Each row of `cor_x.csv` must have 7 columns. Each row of `cor_y.csv` must have 1 column.
+Each row of `cor_independent.csv` must have 7 columns. Each row of `cor_dependent.csv` must have 1 column.
 
-* `cor_x.csv` and `cor_y.csv` do not have the same number of entries.
+* `cor_independent.csv` and `cor_dependent.csv` do not have the same number of entries.
 
-Each set of independent variables in `cor_x.csv` must have a corresponding dependent variable in `cor_y.csv` and vice versa. Both files must have the same number of rows.
+Each set of independent variables in `cor_independent.csv` must have a corresponding dependent variable in `cor_dependent.csv` and vice versa. Both files must have the same number of rows.
 
 * The least squares error is very high at startup. 
 
@@ -169,11 +169,11 @@ The fitness of the starting population can be improved somewhat by increasing th
 
 * The iterations proceed very slowly.
 
-The gene pool size increases the number of operations performed per iteration. For slower computers, the gene pool size should not be much larger than 50.
+The gene pool size increases the number of operations performed per iteration. For slower computers, the gene pool size should not be larger than 50.
 
 * Population divergence 
 
-If the mutation rate is too high, the least squares error in the population may fluctuate wildly rather than decreasing, or it may increase. The program will stop if it detects that the population is not adapting to the dataset. A reasonable value for the mutation rate is 0.001, though a higher number may be more appropriate for larger datasets with more noise.
+If the mutation rate is too high, the least squares error in the population may fluctuate wildly rather than decreasing, or it may increase. The program will stop if it detects that the population is not adapting to the dataset. A reasonable value for the mutation rate is 0.01, though a higher number may be more appropriate for larger datasets with more noise.
 
 * Population bottleneck
 
