@@ -73,12 +73,12 @@ double cor::combine(double x, double y)
 //returns the approximate COR with independent variables x[] and coefficients parameters[][]
 double cor::f(std::vector<double> x, parameters param)
 {
-	double y1 = Chebyshev(x[0],param.c[0]);
-	y1 /= Chebyshev(x[2],param.c[1]);
-	y1 /= Chebyshev(x[4],param.c[2]);
-	double y2 = Chebyshev(x[1],param.c[0]);
-	y2 /= Chebyshev(x[3],param.c[1]);
-	y2 /= Chebyshev(x[5],param.c[2]);
+	double y1 = pow(Chebyshev(x[0],param.c[0]),1.6);
+	y1 /= pow(Chebyshev(x[2],param.c[1]),0.5);
+	y1 /= pow(Chebyshev(x[4],param.c[2]),0.125);
+	double y2 = pow(Chebyshev(x[1],param.c[0]),1.6);
+	y2 /= pow(Chebyshev(x[3],param.c[1]),0.5);
+	y2 /= pow(Chebyshev(x[5],param.c[2]),0.125);
 	return 3.1*combine(y1,y2)/Chebyshev(x[6],param.c[3]);
 }
 
@@ -90,6 +90,8 @@ std::vector<double> cor::GetResiduals(std::vector<double> y, std::vector<std::ve
 	{
 		double yi = f(x[i],param);
 		residuals[i] = y[i]-yi;
+		if (isnan(residuals[i]))
+			residuals[i] = FLT_MAX;
 	}
 	return residuals;
 }
