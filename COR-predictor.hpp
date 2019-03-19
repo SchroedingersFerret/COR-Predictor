@@ -25,7 +25,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <cmath>
+#include <math.h>
 #include <vector>
 #include <float.h>
 #include <time.h>
