@@ -127,9 +127,9 @@ When troubleshooting, it is often useful to set the elite population size to 0, 
 
 The `mutation_rate` setting determines the percentage of bits accross the entire population that are changed during mutation. Increasing its value increases the amount of variation introduced on each iteration and aids in the algorithm's ability to search the objective function space. However, a too-large mutation rate will cause the program to diverge or to scan around wildly without converging. 
 
-* `least_squares_error`:
+* `mean_squared_error`:
 
-This is the least squares error value at which iteration will conclude. It is better to be conservative (not too small) with this value, as there is no other way to stop the iterative process prematurely at this point. It is better to perform a convergence in multiple steps to avoid the algorithm stalling without reaching the required tolerance. If that happens, the only recourse as of this release is to close out the terminal and restart the program.
+This is the mean squares error value at which iterations will conclude. It is better to be conservative (not too small) with this value, as there is no other way to stop the iterative process prematurely at this point. It is better to perform a convergence in multiple steps to avoid the algorithm stalling without reaching the required tolerance. If that happens, the only recourse as of this release is to close out the terminal and restart the program.
 
 Adding Datapoints
 
@@ -145,7 +145,7 @@ while in the build folder.
 
 Upon startup, the program reads the files 'cor_independent.csv', 'cor_dependent.csv', 'cor_parameters.csv', and 'settings.txt' automatically. A main menu will appear with four options. The first opens a dialogue that allows the user to enter a new training datapoint. The second option initializes optimization using the settings read from 'settings.txt'. The third opens a dialogue that predicts a coefficient of restitution from material properties. The third option quits the program.
 
-If the second option is chosen, the user will be prompted to choose optimization from a random parameter configuration or from an existing configuration if one exists. The program will then display the least squares error for each iteration so that the user can track its progress. The main loop will continue until the specified tolerance is reached or the user stops the program. If the required tolerance is reached the program will ask the user whether to write the new parameter configuration to file. If the user responds "y", the new configuration will be saved, overwriting the previous one. If the user responds "n", the new configuration will be discarded. 
+If the second option is chosen, the user will be prompted to choose optimization from a random parameter configuration or from an existing configuration if one exists. The program will then display the mean squared error for each iteration so that the user can track its progress. The main loop will continue until the specified tolerance is reached or the user stops the program. If the required tolerance is reached the program will ask the user whether to write the new parameter configuration to file. If the user responds "y", the new configuration will be saved, overwriting the previous one. If the user responds "n", the new configuration will be discarded. 
 
 Overall, the optimization process could take anywhere from several seconds to several hours depending on the size and quality of the training data. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster.
 
@@ -173,7 +173,7 @@ The gene pool size increases the number of operations performed per iteration. F
 
 * Population divergence 
 
-If the mutation rate is too high, the least squares error in the population may fluctuate wildly rather than decreasing, or it may increase. The program will stop if it detects that the population is not adapting to the dataset. A reasonable value for the mutation rate is 0.01, though a higher number may be more appropriate for larger datasets with more noise.
+If the mutation rate is too high, the mean squared error in each member of the population may fluctuate wildly rather than decreasing overall, or it may increase. The program will stop if it detects that the population is not adapting to the dataset. A reasonable value for the mutation rate is 0.01, though a higher number may be more appropriate for larger datasets with more noise.
 
 * Population bottleneck
 
