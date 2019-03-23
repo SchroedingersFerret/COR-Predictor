@@ -31,7 +31,8 @@
 #include <time.h>
 #include <bitset>
 #include <stdlib.h>
-//#include <thread>
+#include <thread>
+
 
 //initial population size
 static int n_initial;
@@ -45,6 +46,8 @@ static const int nx = 7;
 static double pm;
 //number of elites
 static int n_elite;
+//remainder of population
+static int n_normal;
 //number of datapoints
 static int n_data;
 //least squares error tolerance
@@ -54,102 +57,44 @@ static std::vector<std::vector<double> > independent;
 //dependent variable array size n_data
 static std::vector<double> dependent;
 //determines whether initial population contains entirely random parameters
-bool random_parameters = false;
+static bool random_parameters = false;
 //quits the program
-bool quit_cor = false;
-
-class genome
-{
-	public:
-		std::vector<std::bitset<64*5> > chromosome;
-		genome()
-		{
-			chromosome.resize(4);
-		};
-};
-
-class parameters
-{
-	public:
-		std::vector<std::vector<double> > c;
-		parameters()
-		{
-			c.resize(4,std::vector<double> (5));
-		};
-};
+static bool quit_cor = false;
 
 //parameter array
-static parameters parameters_global;
+static std::vector<std::vector<double> > parameters_global(4,std::vector<double> (5));
 
-class cor
-{
-	public:	
-		double rand_double();
-		bool rand_bool();
-		double RandInit();
-		double combine(double x, double y);
-		double Chebyshev(double x, std::vector<double> param);
-		double f(std::vector<double> x, parameters param);	
-		std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, parameters param);
-		double SumOfSquares(std::vector<double> residuals);
-};
-
-class genetic : public cor
+class COR_predictor
 {
 	private:
-		genome encode(parameters param);
-		parameters decode(genome w);
-		int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
-		void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
-		parameters Get_random_parameters();
-		void Initiate(std::vector<genome> &population,std::vector<double> &squareSums);
-		void shuffle(std::vector<int> &index);
-		void tournament(std::vector<genome> &population,std::vector<double> &squareSums);
-		void reproduction(std::vector<genome> &population);
-		void rankChromosomes(std::vector<genome> &population,std::vector<double> &squareSums);
-		void mutate(std::vector<genome> &population,std::vector<double> &squareSums);
-		double percentDifference(genome individual1, genome individual2);
-		double getDiversity(std::vector<genome> &population);
-		void DivergenceError();
-		void BottleneckError();
-		void CheckDiversity(std::vector<genome> &population);
-		void show_least_squares(double S);
+		static std::vector<double> read_csv1d(const char * filename);
+		static std::vector<std::vector<double> > read_csv2d(const char * filename);
+		static void write_csv1d(std::vector<double> a, const char * filename);
+		static void write_csv2d(std::vector<std::vector<double> > a, const char * filename);
+		static void Point_entry();
+		static bool Set_more(char input);
+		static bool Enter_more();
+		static bool Set_quit(char input);
+		static bool Return_quit();
+		static void Enter();
+		static bool Set_random(char input);
+		static bool Use_random();
+		static bool Set_write(char input);
+		static void Print_parameters(std::vector<std::vector<double> > param);
+		static void Write_parameters(std::vector<std::vector<double> > param);
+		static void Show_time(int time);
+		static void Optimize();
+		static std::vector<double> pGet_independent();
+		static void Predict();
+		static void Show_main_menu();
+		struct Mode;
 	public:
-		void run();
+		static void Get_settings();
+		static void Get_independent();
+		static void Get_dependent();
+		static void Get_parameters();
+		static void Main_menu();
 };
-
-class anneal : public cor
-{
-	private:
-		int partition(std::vector<double> &value, int low, int high);
-		void quicksort_x(std::vector<double> &value, int low, int high);
-		double Gaussian_move(double mean, double std_dev,int accepted);
-		parameters neighbor(parameters state0,double error,int accepted);
-		double Temperature(double new_energy, int accepted);
-	public:
-		parameters run(parameters old_state);
-};
-
-void Get_settings();
-std::vector<double> read_csv1d(const char * filename);
-std::vector<std::vector<double> > read_csv2d(const char * filename);
-void write_csv1d(std::vector<double> a, const char * filename);
-void write_csv2d(std::vector<std::vector<double> > a, const char * filename);
-void Get_independent();
-void Get_dependent();
-void Get_parameters();
-void Point_entry();
-bool Enter_more();
-bool Return_quit();
-void Enter();
-bool Query_initiate();
-bool Use_random();
-bool Query_write();
-void Print_parameters(parameters param);
-void Write_parameters(parameters param);
-void Optimize();
-void Show_main_menu();
-void Main_menu();
 
 #endif /* COR_PREDICTOR_HPP_ */
 
