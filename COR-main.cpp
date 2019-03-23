@@ -21,21 +21,21 @@
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "COR-predictor.hpp"
-#include "COR-cor.hpp"
-#include "COR-anneal.hpp"
-#include "COR-genetic.hpp"
-#include "COR-common.hpp"
+#include "COR-predictor.cpp"
+#include "COR-optimization.hpp"
+#include "COR-genetic.cpp"
+#include "COR-anneal.cpp"
 
 int main()
 {
 	srand((unsigned int)time(NULL));
-	Get_settings();
-	Get_independent();
-	Get_dependent();
-	Get_parameters();
+	COR_predictor::Get_settings();
+	COR_predictor::Get_independent();
+	COR_predictor::Get_dependent();
+	COR_predictor::Get_parameters();
 	std::cout << "Welcome to COR Predictor 0.4\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
 	while (!quit_cor)
-		Main_menu();
+		COR_predictor::Main_menu();
 	return 0;
 }
