@@ -36,7 +36,6 @@
 class COR_predictor
 {	
 	private:
-		
 		static std::vector<double> read_csv1d(const char * filename);
 		static std::vector<std::vector<double> > read_csv2d(const char * filename);
 		static void write_csv1d(std::vector<double> a, const char * filename);
