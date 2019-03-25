@@ -107,7 +107,7 @@ std::vector<std::vector<double> > COR_predictor::independent;
 std::vector<double> COR_predictor::dependent;
 bool COR_predictor::random_parameters = false;
 bool COR_predictor::quit_cor = false;
-std::vector<std::vector<double> > COR_predictor::parameters_global(4,std::vector<double> (5);
+std::vector<std::vector<double> > COR_predictor::parameters_global(4,std::vector<double> (5));
 								   
 #endif /* COR_PREDICTOR_HPP_ */
 
