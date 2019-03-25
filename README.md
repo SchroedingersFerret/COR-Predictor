@@ -113,15 +113,13 @@ This setting determines the size of the initial population created at initializa
 
 * `gene_pool_size`:
 
-This is the number of configurations in the initial population selected to be kept for the iterations. It should be much smaller than the `initial_population_size` setting so that mostly well-fitting configurations will be selected at startup. This setting must also be large enough to slow the speed at which bottlenecking occurs. `gene_pool_size` is limited by the computer's available processing power, as raising its value scales the number of operations performed on each iteration exponentially. 
+This is the number of configurations in the initial population selected to be kept for the iterations. It should be much smaller than the `initial_population_size` setting so that mostly well-fitting configurations will be selected at startup. This setting must also be large enough to slow the speed at which bottlenecking occurs as well as to avoid local minima. `gene_pool_size` is limited by the computer's available processing power, as raising its value scales the number of operations performed on each iteration exponentially. 
 
 * `elite_population_size`:
 
 This setting increases the number of configurations kept in the "elite population", which serves several functions. The elite population is kept safe from mutations that decrease their fitness. This provides protection against divergence, especially at high mutation rates. However, large elite population sizes decrease the speed at which the objective function space is searched. Around 25 percent of the gene pool is an appropriate size.
 
 The elite population also plays a role in reducing the time needed for repeated convergences. At startup, the option is given to use a parameter configuration from a previous convergence, which will be used as each configuration in the elite population. This "jump-starts" the convergence process.
-
-When troubleshooting, it is often useful to set the elite population size to 0, since the program only displays the least squares configuration. Removing the effect of the elite population reveals the behavior of the configurations that are not protected from mutations.
 
 * `mutation_rate`:
 
@@ -181,8 +179,7 @@ Since the number of members in the population is fixed, its diversity decreases 
 
 * The error decreases steadily then decreases progressivly slower.
 
-Try decreasing the size of the elite population or increasing the mutation rate.
-If this does not help, change the least squares error tolerance to a less-ambitious estimate and use a series of optimizations to reach the required tolerance.
+The mean squared error always decreases very quickly at startup, then slows down as the population begins to converge. When the mean squared error is large, larger mutation rates are favorable to avoid local minima. Once the mean squared error is smaller, the mutation rate should be decreased in order to aid convergence.
 
 ---
 
