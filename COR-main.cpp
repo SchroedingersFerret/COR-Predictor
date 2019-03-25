@@ -21,10 +21,10 @@
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "COR-predictor.hpp"
-#include "COR-predictor.cpp"
 #include "COR-optimization.hpp"
 #include "COR-genetic.cpp"
 #include "COR-anneal.cpp"
+#include "COR-predictor.cpp"
 
 int main()
 {
@@ -35,7 +35,7 @@ int main()
 	COR_predictor::Get_parameters();
 	std::cout << "Welcome to COR Predictor 0.4\n";
 	std::cout << "Copyright 2019, J. Ball (SchroedingersFerret)\n\n";
-	while (!quit_cor)
+	while (!COR_predictor::quit_cor)
 		COR_predictor::Main_menu();
 	return 0;
 }
