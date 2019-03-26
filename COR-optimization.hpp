@@ -29,7 +29,7 @@ class optimization : public COR_predictor
 		static bool rand_bool();
 		static double RandInit();
 		static double combine(double x, double y);
-		static double Chebyshev(double x, std::vector<double> param);
+		static double Chebyshev(double x, std::vector<double> param, double b, double a);
 		static double f(std::vector<double> x, std::vector<std::vector<double> > param);	
 		static std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, std::vector<std::vector<double> > param);
 		static double Mean_square_error(std::vector<double> residuals);
@@ -38,23 +38,23 @@ class optimization : public COR_predictor
 class genetic : public optimization
 {
 	private:
-		static std::vector<std::bitset<64*5> > encode(std::vector<std::vector<double> > param);
-		static std::vector<std::vector<double> > decode(std::vector<std::bitset<64*5> > w);
+		static std::vector<std::bitset<320> > encode(std::vector<std::vector<double> > param);
+		static std::vector<std::vector<double> > decode(std::vector<std::bitset<320> > w);
 		static int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 		static void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 		static std::vector<std::vector<double> > Get_random_parameters();
-		static void Initiate(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared);
+		static void Initiate(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
 		static void shuffle(std::vector<int> &index);
-		static void tournament(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared);
-		static void reproduction(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared);
-		static void mutate_elite(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared);
-		static void mutate_normal(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared);
-		static void rankChromosomes(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared);
-		static double percentDifference(std::vector<std::bitset<64*5> > individual1, std::vector<std::bitset<64*5> > individual2);
-		static double getDiversity(std::vector<std::vector<std::bitset<64*5> > > &population);
+		static void tournament(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
+		static void reproduction(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
+		static void mutate_elite(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
+		static void mutate_normal(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
+		static void rankChromosomes(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
+		static double percentDifference(std::vector<std::bitset<320> > individual1, std::vector<std::bitset<320> > individual2);
+		static double getDiversity(std::vector<std::vector<std::bitset<320> > > &population);
 		static void DivergenceError();
 		static void BottleneckError();
-		static void CheckDiversity(std::vector<std::vector<std::bitset<64*5> > > &population);
+		static void CheckDiversity(std::vector<std::vector<std::bitset<320> > > &population);
 		static void show_mean_squared(double mean_squared);
 	public:
 		static void run();
@@ -95,17 +95,19 @@ bool optimization::rand_bool()
 }
 
 //Evaluates Chebyshev approximation at x with coefficients from param[]
-double optimization::Chebyshev(double x, std::vector<double> param)
+double optimization::Chebyshev(double x, std::vector<double> param, double a, double b)
 {
 	int ni = param.size();
 	double b1 = 0.f, b2 = 0.f;
+	double y = (2.f*x-a-b)/(b-a);
+	double y2 = 2.f*y;
 	for (int i=ni-1; i>0; --i)
 	{
 		double temp = b1;
-		b1 = 2.f*x*b1-b2+param[i];
+		b1 = y2*b1-b2+param[i];
 		b2 = temp;
 	}
-	return x*b1-b2+param[0];
+	return y*b1-b2+0.5*param[0];
 }
 
 //combines material properties
@@ -117,13 +119,15 @@ double optimization::combine(double x, double y)
 //returns the approximate COR with independent variables x[] and coefficients parameters[][]
 double optimization::f(std::vector<double> x, std::vector<std::vector<double> > param)
 {
-	double y1 = pow(Chebyshev(x[0],param[0]),1.6);
-	y1 /= pow(Chebyshev(x[2],param[1]),0.5);
-	y1 /= pow(Chebyshev(x[4],param[2]),0.125);
-	double y2 = pow(Chebyshev(x[1],param[0]),1.6);
-	y2 /= pow(Chebyshev(x[3],param[1]),0.5);
-	y2 /= pow(Chebyshev(x[5],param[2]),0.125);
-	return 3.1*combine(y1,y2)/Chebyshev(x[6],param[3]);
+	double y1 = pow(Chebyshev(x[0],param[0],0.f,3.620),0.5);
+	y1 /= pow(Chebyshev(x[2],param[1],0.f,32100.f),0.5);
+	y1 /= pow(Chebyshev(x[4],param[2],0.f,22.59),0.5);
+	double y2 = pow(Chebyshev(x[1],param[0],0.f,3.620),0.5);
+	y2 /= pow(Chebyshev(x[3],param[1],0.f,32100.f),0.5);
+	y2 /= pow(Chebyshev(x[5],param[2],0.f,22.59),0.5);
+	double e = pow(y1*y1+y2*y2,0.5);
+	double v = Chebyshev(x[6],param[3],0.f,343.f);
+	return e*(1.f-v);
 }
 
 //gets the residual of each datapoint
