@@ -29,7 +29,7 @@ class optimization : public COR_predictor
 		static bool rand_bool();
 		static double RandInit();
 		static double combine(double x, double y);
-		static double Chebyshev(double x, std::vector<double> param, double b, double a);
+		static double Chebyshev(double x, std::vector<double> param, double a, double b);
 		static double f(std::vector<double> x, std::vector<std::vector<double> > param);	
 		static std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, std::vector<std::vector<double> > param);
 		static double Mean_square_error(std::vector<double> residuals);
