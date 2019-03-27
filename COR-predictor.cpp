@@ -293,7 +293,7 @@ bool COR_predictor::Set_more(char input)
 		case 'N':	return false;
 					break;
 
-		default	:	throw "Invalid input\nEnter y/n: ";
+		default	:	throw "Invalid input\nEnter 1/2: ";
 					break;
 	}
 }
