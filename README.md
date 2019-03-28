@@ -145,7 +145,7 @@ Upon startup, the program reads the files 'cor_independent.csv', 'cor_dependent.
 
 If the second option is chosen, the user will be prompted to choose optimization from a random parameter configuration or from an existing configuration if one exists. The program will then display the mean squared error for each iteration so that the user can track its progress. The main loop will continue until the specified tolerance is reached or the user stops the program. If the required tolerance is reached the program will ask the user whether to write the new parameter configuration to file. If the user responds "y", the new configuration will be saved, overwriting the previous one. If the user responds "n", the new configuration will be discarded. 
 
-Overall, the optimization process could take anywhere from several seconds to several hours depending on the size and quality of the training data. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster.
+Overall, the optimization process could take anywhere from several seconds to several hours depending on the size and quality of the training data. If optimization takes much longer than that, the settings might need to be changed in order for the algorithm to work faster. If optimization stops prematurely, exit the program with 'Ctrl + C'.
 
 Troubleshooting
 
