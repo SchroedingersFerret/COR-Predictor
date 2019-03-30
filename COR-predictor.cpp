@@ -31,6 +31,7 @@ void COR_predictor::Get_settings()
 		abort();
 	}
 	char ch;
+	
 	do
 	{
 		fin.get(ch);
@@ -122,7 +123,7 @@ void COR_predictor::write_csv1d(std::vector<double> a, const char * filename)
 {
 	std::ofstream fout;
 	fout.open(filename);
-	fout.precision(15);
+	fout.precision(30);
 	fout.setf(std::ios::fixed, std::ios::floatfield);
 	int ni = a.size();
 	for (int i=0; i<ni; ++i)
@@ -135,10 +136,10 @@ void COR_predictor::write_csv2d(std::vector<std::vector<double> > a, const char 
 {
 	std::ofstream fout;
 	fout.open(filename);
-	fout.precision(15);
+	fout.precision(30);
 	fout.setf(std::ios::fixed, std::ios::floatfield);
-	int ni = a.size();
-	int nj = a[0].size();
+	const int ni = a.size();
+	const int nj = a[0].size();
 	for (int i=0; i<ni; ++i)
 	{
 		for (int j=0; j<nj; ++j)
@@ -172,7 +173,6 @@ void COR_predictor::Get_independent()
 		abort();
 	}
 	n_data = independent.size();
-	fin.close();
 }
 	
 //reads the dependent variables of the training datapoints
@@ -293,7 +293,7 @@ bool COR_predictor::Set_more(char input)
 		case 'N':	return false;
 					break;
 
-		default	:	throw "Invalid input\nEnter 1/2: ";
+		default	:	throw "Invalid input\nEnter y/n: ";
 					break;
 	}
 }
@@ -306,7 +306,8 @@ bool COR_predictor::Enter_more()
 	bool more = false;
 	while(std::cin.get(input))
 	{
-		std::cin.get();
+		char dummy[30];
+		std::cin.getline(dummy,30);
 		std::cout << "\n";
 		try
 		{
@@ -334,7 +335,7 @@ bool COR_predictor::Set_quit(char input)
 		case '2':	return true;
 					break;
 
-		default	:	throw "Invalid input\nEnter y/n: ";
+		default	:	throw "Invalid input\nEnter 1/2: ";
 					break;
 	}
 }
@@ -347,7 +348,8 @@ bool COR_predictor::Return_quit()
 	bool quit = false;
 	while(std::cin.get(input))
 	{
-		std::cin.get();
+		char dummy[30];
+		std::cin.getline(dummy,30);
 		std::cout << "\n";
 		try
 		{
@@ -419,7 +421,8 @@ bool COR_predictor::Use_random()
 	
 	while(std::cin.get(input))
 	{
-		std::cin.get();
+		char dummy[30];
+		std::cin.getline(dummy,30);
 		std::cout << "\n";
 		try
 		{
@@ -478,7 +481,8 @@ void COR_predictor::Write_parameters(std::vector<std::vector<double> > param)
 	
 	while(std::cin.get(input))
 	{
-		std::cin.get();
+		char dummy[30];
+		std::cin.getline(dummy,30);
 		std::cout << "\n";
 		try
 		{
@@ -501,6 +505,7 @@ void COR_predictor::Write_parameters(std::vector<std::vector<double> > param)
 		std::cout << "Optimization terminated without writing new parameters.\n\n";
 }
 
+//shows time taken for optimization
 void COR_predictor::Show_time(int time)
 {
 	int hours, minutes, seconds;
@@ -516,6 +521,7 @@ void COR_predictor::Show_time(int time)
 	std::cout << seconds << "\n\n";
 }
 
+//optimizes parameters to training data
 void COR_predictor::Optimize()
 {
 	random_parameters = Use_random();
@@ -529,6 +535,7 @@ void COR_predictor::Optimize()
 	quit_cor = Return_quit();
 }
 
+//gets independent variables for prediction
 std::vector<double> COR_predictor::pGet_independent()
 {
 	std::vector<double> x(nx);
@@ -578,14 +585,18 @@ std::vector<double> COR_predictor::pGet_independent()
 	return x;
 }	
 
+//predicts a coefficient of restitution
 void COR_predictor::Predict()
 {
 	std::vector<double> pred_x = pGet_independent();
 	double pred_y = optimization::f(pred_x,parameters_global);
+	std::cout.precision(3);
+	std::cout.setf(std::ios::fixed, std::ios::floatfield);
 	std::cout << "e = " << pred_y << "\n\n";
 	quit_cor = Return_quit();
 }	
 
+//shows the main menu
 void COR_predictor::Show_main_menu()
 {
 	std::cout << "Enter '1' to enter a new training datapoint.\n\n";
@@ -594,6 +605,7 @@ void COR_predictor::Show_main_menu()
 	std::cout << "Enter '4' to quit.\n\n";
 }
 
+//sets mode of operation
 struct COR_predictor::Mode
 {
 	public:
@@ -623,6 +635,7 @@ struct COR_predictor::Mode
 	}
 };		
 
+//user can select mode of operation from the main menu
 void COR_predictor::Main_menu()
 {
 	Show_main_menu();
@@ -630,7 +643,8 @@ void COR_predictor::Main_menu()
 	char input;
 	while(std::cin.get(input))
 	{
-		std::cin.get();
+		char dummy[30];
+		std::cin.getline(dummy,30);
 		std::cout << "\n";
 		try
 		{
