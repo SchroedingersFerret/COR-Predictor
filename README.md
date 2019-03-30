@@ -1,6 +1,6 @@
 COR Predictor 
 =============
-version 0.4-alpha
+version 0.5-beta
 
 By: J. Ball (SchroedingersFerret)
 
