@@ -21,9 +21,9 @@
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
     
 //encodes the parameters into an offset binary array
-std::vector<std::bitset<64*5> > genetic::encode(std::vector<std::vector<double> > param)
+std::vector<std::bitset<384> > genetic::encode(std::vector<std::vector<double> > param)
 {
-	std::vector<std::bitset<64*5> > w(4);
+	std::vector<std::bitset<384> > w(4);
 	int ni = param.size();
 	int nj = param[0].size();
 	for (int i=0; i<ni; ++i)
@@ -56,9 +56,9 @@ std::vector<std::bitset<64*5> > genetic::encode(std::vector<std::vector<double> 
 }
 
 //recovers the parameters from a binary chromosome
-std::vector<std::vector<double> > genetic::decode(std::vector<std::bitset<64*5> > w)
+std::vector<std::vector<double> > genetic::decode(std::vector<std::bitset<384> > w)
 {
-	std::vector<std::vector<double> > param(4,std::vector<double> (5));
+	std::vector<std::vector<double> > param(4,std::vector<double> (6));
 	int ni = param.size();
 	int nj = param[0].size();
 	for (int i=0; i<ni; ++i)
@@ -85,7 +85,7 @@ std::vector<std::vector<double> > genetic::decode(std::vector<std::bitset<64*5> 
 //fills a parameter array with random doubles
 std::vector<std::vector<double> > genetic::Get_random_parameters()
 {
-	std::vector<std::vector<double> > param(4,std::vector<double> (5));
+	std::vector<std::vector<double> > param(4,std::vector<double> (6));
 	int ni = param.size();
 	int nj = param[0].size();
 	for (int i=0; i<ni; ++i)
@@ -126,10 +126,10 @@ void genetic::quicksort_index(std::vector<double> &cost, std::vector<int> &index
 }
 
 //initiates genetic algorithm
-void genetic::Initiate(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared)
+void genetic::Initiate(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared)
 {
-	std::vector<std::vector<std::bitset<64*5> > > bin (n_initial, std::vector<std::bitset<64*5> > (4));
-	std::vector<std::vector<double> > param(4,std::vector<double> (5));
+	std::vector<std::vector<std::bitset<384> > > bin (n_initial, std::vector<std::bitset<384> > (4));
+	std::vector<std::vector<double> > param(4,std::vector<double> (6));
 	std::vector<double> cost (n_initial);
 	std::vector<int> index (n_initial);
 	//fills the elite population with the parameters read from file unless user specifies an entirely random population
@@ -180,10 +180,10 @@ void genetic::shuffle(std::vector<int> &index)
 }
 
 //performs tournament selection on the chromosome population
-void genetic::tournament(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared)
+void genetic::tournament(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared)
 {
 	std::vector<int> index(n_gpool);
-	std::vector<std::vector<std::bitset<64*5> > > bin = population;
+	std::vector<std::vector<std::bitset<384> > > bin = population;
 	std::vector<double> cost = mean_squared;
 	for (int i=0; i<n_gpool; ++i)
 		index[i] = i;
@@ -206,7 +206,7 @@ void genetic::tournament(std::vector<std::vector<std::bitset<64*5> > > &populati
 }
 
 //performs uniform crossover reproduction on the chromosomes
-void genetic::reproduction(std::vector<std::vector<std::bitset<64*5> > > &population, std::vector<double> &mean_squared)
+void genetic::reproduction(std::vector<std::vector<std::bitset<384> > > &population, std::vector<double> &mean_squared)
 {
 	int k = 0;
 	int n_repro2 = n_repro/2;
@@ -237,20 +237,28 @@ void genetic::reproduction(std::vector<std::vector<std::bitset<64*5> > > &popula
 }
 
 //ranks the chromosomes by cost
-void genetic::rankChromosomes(std::vector<std::vector<std::bitset<64*5> > > &population, std::vector<double> &mean_squared)
+void genetic::rankChromosomes(std::vector<std::vector<std::bitset<384> > > &population, std::vector<double> &mean_squared)
 {
-	std::vector<std::vector<std::bitset<64*5> > > bin = population;
-	std::vector<std::vector<double> > param(4,std::vector<double> (5));
+	std::vector<std::vector<std::bitset<384> > > bin = population;
+	
 	std::vector<double> cost(n_gpool);
 	std::vector<int> index(n_gpool);
-	
-	for (int i=0; i<n_gpool; ++i)
+	auto regression = [&bin,&cost,&index] (int a, int b)
 	{
-		param = decode(bin[i]);
-		std::vector<double> residuals = GetResiduals(dependent,independent,param);
-		cost[i] = Mean_square_error(residuals);
-		index[i] = i;
-	}
+		std::vector<std::vector<double> > param(4,std::vector<double> (6));
+		for (int i=a; i<b; ++i)
+		{
+			param = decode(bin[i]);
+			std::vector<double> residuals = GetResiduals(dependent,independent,param);
+			cost[i] = Mean_square_error(residuals);
+			index[i] = i;
+		}
+	};
+	
+	std::thread eval1(regression,0,n_gpool/2);
+	std::thread eval2(regression,n_gpool/2,n_gpool);
+	eval1.join();
+	eval2.join();
 	
 	quicksort_index(cost,index,0,cost.size());
 	for (int i=0; i<n_gpool; ++i)
@@ -260,8 +268,7 @@ void genetic::rankChromosomes(std::vector<std::vector<std::bitset<64*5> > > &pop
 	}
 }
 
-//mutates bits in the elite population
-void genetic::mutate_elite(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared)
+void genetic::mutate_elite(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared)
 {
 	//elite population remains unchanged if mutation increases the cost
 	int ni = population[0].size();
@@ -272,7 +279,7 @@ void genetic::mutate_elite(std::vector<std::vector<std::bitset<64*5> > > &popula
 		int i_elite = rand() % n_elite;
 		int i_mutate = rand() % ni;
 		int j_mutate = rand() % nj;
-		std::vector<std::bitset<64*5> > bin = population[i_elite];
+		std::vector<std::bitset<384> > bin = population[i_elite];
 		bin[i_mutate].flip(j_mutate);
 		std::vector<std::vector<double> > param = decode(bin);
 		std::vector<double> residuals = GetResiduals(dependent,independent,param);
@@ -285,8 +292,7 @@ void genetic::mutate_elite(std::vector<std::vector<std::bitset<64*5> > > &popula
 	}
 }
 
-//mutates bits in the remainder of the population
-void genetic::mutate_normal(std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared)
+void genetic::mutate_normal(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared)
 {
 	int ni = population[0].size();
 	int nj = population[0][0].size();
@@ -302,7 +308,7 @@ void genetic::mutate_normal(std::vector<std::vector<std::bitset<64*5> > > &popul
 }
 
 //returns the percentage of differing bits between two chromosomes
-double genetic::percentDifference(std::vector<std::bitset<64*5> > individual1, std::vector<std::bitset<64*5> > individual2)
+double genetic::percentDifference(std::vector<std::bitset<384> > individual1, std::vector<std::bitset<384> > individual2)
 {
 	int ni = individual1.size();
 	int nj = individual1[0].size();
@@ -320,7 +326,7 @@ double genetic::percentDifference(std::vector<std::bitset<64*5> > individual1, s
 }
 
 //returns the diversity of the population
-double genetic::getDiversity(std::vector<std::vector<std::bitset<64*5> > > &population)
+double genetic::getDiversity(std::vector<std::vector<std::bitset<384> > > &population)
 {
 	double diversity = 0.f;
 	for (int i=1; i<n_gpool; ++i)
@@ -346,12 +352,12 @@ void genetic::BottleneckError()
 }
 
 //checks the diversity of the population and aborts if it is too large or small
-void genetic::CheckDiversity(std::vector<std::vector<std::bitset<64*5> > > &population)
+void genetic::CheckDiversity(std::vector<std::vector<std::bitset<384> > > &population)
 {
 	double diversity = getDiversity(population);
 	if (diversity > 0.60)
 		DivergenceError();
-	if (diversity < 0.0001)
+	if (diversity < 0.00001)
 		BottleneckError();
 }
 
@@ -365,51 +371,51 @@ void genetic::show_mean_squared(double S)
 void genetic::run()
 {
 	//population stores each binary genome
-	std::vector<std::vector<std::bitset<64*5> > > population(n_gpool,std::vector<std::bitset<64*5> > (4));
+	std::vector<std::vector<std::bitset<384> > > bitset_population(n_gpool,std::vector<std::bitset<384> > (4));
 	//sum of the square of each residual
-	std::vector<double> mean_squared(n_gpool);
-	std::thread init(&Initiate,std::ref(population),std::ref(mean_squared));
-	init.join();
+	std::vector<double> mean_squared_error(n_gpool);
+	std::thread init(&Initiate,std::ref(bitset_population),std::ref(mean_squared_error));
 	std::cout << "Running genetic algorithm...\n\n";
 	int iterations = 0;
 	double old_S = 0;
 	double new_S = 0;
-	while(mean_squared[0] > error)
+	init.join();
+	while(mean_squared_error[0] > error)
 	{
-		std::thread tour(&tournament,std::ref(population),std::ref(mean_squared));
+		std::thread tour(&tournament,std::ref(bitset_population),std::ref(mean_squared_error));
 		tour.join();
 		
-		std::thread repro(&reproduction,std::ref(population),std::ref(mean_squared));
+		std::thread repro(&reproduction,std::ref(bitset_population),std::ref(mean_squared_error));
 		repro.join();
 		
-		new_S = mean_squared[0];
+		new_S = mean_squared_error[0];
 		if (new_S != old_S)
 		{
-			show_mean_squared(mean_squared[0]);
+			show_mean_squared(mean_squared_error[0]);
 			old_S = new_S;
 		}
 		
 		iterations++;
 		if (iterations >= 50)
 		{
-			std::thread check([](std::vector<std::vector<std::bitset<64*5> > > &population,std::vector<double> &mean_squared)
+			std::thread check([&bitset_population,&mean_squared_error]()
 			{
-				CheckDiversity(population);
-				std::vector<std::vector<double> > param = anneal::run(decode(population[0]));
+				CheckDiversity(bitset_population);
+				std::vector<std::vector<double> > param = anneal::run(decode(bitset_population[0]));
 				double cost = Mean_square_error(GetResiduals(dependent,independent,param));
-				population[n_elite-1] = encode(param);
-				mean_squared[n_elite-1] = cost;
-				rankChromosomes(population,mean_squared);
-			},std::ref(population),std::ref(mean_squared));
+				bitset_population[n_elite-1] = encode(param);
+				mean_squared_error[n_elite-1] = cost;
+				rankChromosomes(bitset_population,mean_squared_error);
+			});
 			check.join();
 			iterations = 0;
 		}
 		
-		std::thread mu1(&mutate_elite,std::ref(population),std::ref(mean_squared));
-		std::thread mu2(&mutate_normal,std::ref(population),std::ref(mean_squared));
+		std::thread mu1(&mutate_elite,std::ref(bitset_population),std::ref(mean_squared_error));
+		std::thread mu2(&mutate_normal,std::ref(bitset_population),std::ref(mean_squared_error));
 		mu1.join();
 		mu2.join();
 	};
-	show_mean_squared(mean_squared[0]);
-	parameters_global = decode(population[0]);
+	show_mean_squared(mean_squared_error[0]);
+	parameters_global = decode(bitset_population[0]);
 }
