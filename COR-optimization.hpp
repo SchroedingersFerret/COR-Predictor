@@ -23,137 +23,90 @@
 #ifndef COR_OPTIMIZATION_HPP_
 #define COR_OPTIMIZATION_HPP_
 
-class optimization : public COR_predictor
-{
-	public:	
-		static bool rand_bool();
-		static double RandInit();
-		static double combine(double x, double y);
-		static double Chebyshev(double x, std::vector<double> param, double a, double b);
-		static double f(std::vector<double> x, std::vector<std::vector<double> > param);	
-		static std::vector<double> GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, std::vector<std::vector<double> > param);
-		static double Mean_square_error(std::vector<double> residuals);
-};
+#include <iostream>
+#include <fstream>
+#include <math.h>
+#include <vector>
+#include <float.h>
+#include <time.h>
+#include <bitset>
+#include <stdlib.h>
+#include <thread>
 
-class genetic : public optimization
+class COR_predictor
 {
 	private:
-		static std::vector<std::bitset<320> > encode(std::vector<std::vector<double> > param);
-		static std::vector<std::vector<double> > decode(std::vector<std::bitset<320> > w);
-		static int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
-		static void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
-		static std::vector<std::vector<double> > Get_random_parameters();
-		static void Initiate(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
-		static void shuffle(std::vector<int> &index);
-		static void tournament(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
-		static void reproduction(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
-		static void mutate_elite(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
-		static void mutate_normal(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
-		static void rankChromosomes(std::vector<std::vector<std::bitset<320> > > &population,std::vector<double> &mean_squared);
-		static double percentDifference(std::vector<std::bitset<320> > individual1, std::vector<std::bitset<320> > individual2);
-		static double getDiversity(std::vector<std::vector<std::bitset<320> > > &population);
-		static void DivergenceError();
-		static void BottleneckError();
-		static void CheckDiversity(std::vector<std::vector<std::bitset<320> > > &population);
-		static void show_mean_squared(double mean_squared);
+		static std::vector<double> read_csv1d(const char * filename);
+		static std::vector<std::vector<double> > read_csv2d(const char * filename);
+		static void write_csv1d(std::vector<double> a, const char * filename);
+		static void write_csv2d(std::vector<std::vector<double> > a, const char * filename);
+		static void Point_entry();
+		static bool Set_more(char input);
+		static bool Enter_more();
+		static bool Set_quit(char input);
+		static bool Return_quit();
+		static void Enter();
+		static bool Set_random(char input);
+		static bool Use_random();
+		static bool Set_write(char input);
+		static void Print_parameters(std::vector<std::vector<double> > param);
+		static void Write_parameters(std::vector<std::vector<double> > param);
+		static void Show_time(int time);
+		static void Optimize();
+		static std::vector<double> pGet_independent();
+		static void Predict();
+		static void Show_main_menu();
+		struct Mode;
+		
 	public:
-		static void run();
+		//initial population size
+		static int n_initial;
+		//size of gene pool for selection
+		static int n_gpool;
+		//number of chromosomes to be selected for reproduction
+		static int n_repro;
+		//number of independent variables
+		static const int nx = 7;
+		//percentage selected for mutation
+		static double pm;
+		//number of elites
+		static int n_elite;
+		//remainder of population
+		static int n_normal;
+		//number of datapoints
+		static int n_data;
+		//least squares error tolerance
+		static double error;
+		//independent variables array size n_data*nx
+		static std::vector<std::vector<double> > independent;
+		//dependent variable array size n_data
+		static std::vector<double> dependent;
+		//determines whether initial population contains entirely random parameters
+		static bool random_parameters;
+		//quits the program if true
+		static bool quit_cor;
+		//parameter array
+		static std::vector<std::vector<double> > parameters_global;
+		
+		static void Get_settings();
+		static void Get_independent();
+		static void Get_dependent();
+		static void Get_parameters();
+		static void Main_menu();
 };
 
-class anneal : private optimization
-{
-	private:
-		static int partition(std::vector<double> &value, int low, int high);
-		static void quicksort_x(std::vector<double> &value, int low, int high);
-		static double Gaussian_move(double mean, double std_dev,int accepted);
-		static std::vector<std::vector<double> > neighbor(std::vector<std::vector<double> > state0,double error,int accepted);
-		static double Temperature(double new_energy, int accepted);
-		static double rand_double();
-	public:
-		static std::vector<std::vector<double> > run(std::vector<std::vector<double> > old_state);
-};
-
-//generates a random double between -1.0 and 1.0
-double optimization::RandInit()
-{
-	double r = rand() % RAND_MAX + (RAND_MAX/2 - 1);
-	r /= RAND_MAX;
-	return r;
-};
-
-//generates a random bool
-bool optimization::rand_bool()
-{
-	int rnd = rand() % (RAND_MAX-1);
-	rnd /= (RAND_MAX-1)/2;
-	if (rnd==1)
-		return true;
-	if (rnd==0)
-		return false;
-	else
-		return rand_bool();
-}
-
-//Evaluates Chebyshev approximation at x with coefficients from param[]
-double optimization::Chebyshev(double x, std::vector<double> param, double a, double b)
-{
-	int ni = param.size();
-	double b1 = 0.f, b2 = 0.f;
-	double y = (2.f*x-a-b)/(b-a);
-	double y2 = 2.f*y;
-	for (int i=ni-1; i>0; --i)
-	{
-		double temp = b1;
-		b1 = y2*b1-b2+param[i];
-		b2 = temp;
-	}
-	return y*b1-b2+0.5*param[0];
-}
-
-//combines material properties
-double optimization::combine(double x, double y)
-{
-	return sqrt(0.5*(x*x + y*y));
-}
-
-//returns the approximate COR with independent variables x[] and coefficients parameters[][]
-double optimization::f(std::vector<double> x, std::vector<std::vector<double> > param)
-{
-	double y1 = pow(Chebyshev(x[0],param[0],0.f,3.620),0.5);
-	y1 /= pow(Chebyshev(x[2],param[1],0.f,32100.f),0.5);
-	y1 /= pow(Chebyshev(x[4],param[2],0.f,22.59),0.5);
-	double y2 = pow(Chebyshev(x[1],param[0],0.f,3.620),0.5);
-	y2 /= pow(Chebyshev(x[3],param[1],0.f,32100.f),0.5);
-	y2 /= pow(Chebyshev(x[5],param[2],0.f,22.59),0.5);
-	double e = pow(y1*y1+y2*y2,0.5);
-	double v = Chebyshev(x[6],param[3],0.f,343.f);
-	return e*(1.f-v);
-}
-
-//gets the residual of each datapoint
-std::vector<double> optimization::GetResiduals(std::vector<double> y, std::vector<std::vector<double> > x, std::vector<std::vector<double> > param)
-{
-	std::vector<double> residuals(n_data);
-	for (int i=0; i<n_data; ++i)
-	{
-		double yi = f(x[i],param);
-		residuals[i] = y[i]-yi;
-		if (isnan(residuals[i]))
-			residuals[i] = 1.f;
-	}
-	return residuals;
-}
-
-//returns the mean of the square of each residual
-double optimization::Mean_square_error(std::vector<double> residuals)
-{
-	double sum = 0;
-	int ni = residuals.size();
-	for (int i=0; i<ni; ++i)
-	{
-		sum += residuals[i]*residuals[i];
-	}
-	return sum/n_data;
-}
+int COR_predictor::n_initial;
+int COR_predictor::n_gpool;
+int COR_predictor::n_repro;
+double COR_predictor::pm;
+int COR_predictor::n_elite;
+int COR_predictor::n_normal;
+int COR_predictor::n_data;
+double COR_predictor::error;
+std::vector<std::vector<double> > COR_predictor::independent;
+std::vector<double> COR_predictor::dependent;
+bool COR_predictor::random_parameters = false;
+bool COR_predictor::quit_cor = false;
+std::vector<std::vector<double> > COR_predictor::parameters_global(4,std::vector<double> (6));
 
 #endif /* COR_OPTIMIZATION_HPP_ */
