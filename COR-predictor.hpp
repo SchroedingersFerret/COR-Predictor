@@ -34,7 +34,7 @@
 #include <thread>
 
 class COR_predictor
-{	
+{
 	private:
 		static std::vector<double> read_csv1d(const char * filename);
 		static std::vector<std::vector<double> > read_csv2d(const char * filename);
@@ -107,7 +107,6 @@ std::vector<std::vector<double> > COR_predictor::independent;
 std::vector<double> COR_predictor::dependent;
 bool COR_predictor::random_parameters = false;
 bool COR_predictor::quit_cor = false;
-std::vector<std::vector<double> > COR_predictor::parameters_global(4,std::vector<double> (5));
+std::vector<std::vector<double> > COR_predictor::parameters_global(4,std::vector<double> (6));
 								   
 #endif /* COR_PREDICTOR_HPP_ */
-
