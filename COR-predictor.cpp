@@ -526,8 +526,7 @@ void COR_predictor::Optimize()
 {
 	random_parameters = Use_random();
 	clock_t tStart = clock();
-	std::thread th1(&genetic::run);
-	th1.join();
+	genetic::run();
 	std::cout << "\n\nParameters found:\n\n" ;
 	Print_parameters(parameters_global);
 	Show_time((clock()-tStart)/CLOCKS_PER_SEC);
