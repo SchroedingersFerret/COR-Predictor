@@ -181,31 +181,27 @@ void genetic::shuffle(std::vector<int> &index)
 //performs tournament selection on the chromosome population
 void genetic::tournament(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared)
 {
-	std::thread tour([&population,&mean_squared]()
+	std::vector<int> index(n_gpool);
+	std::vector<std::vector<std::bitset<384> > > bin = population;
+	std::vector<double> cost = mean_squared;
+	for (int i=0; i<n_gpool; ++i)
+		index[i] = i;
+	shuffle(index);
+	int k = 0;
+	for (int i=0; i<n_repro; ++i)
 	{
-		std::vector<int> index(n_gpool);
-		std::vector<std::vector<std::bitset<384> > > bin = population;
-		std::vector<double> cost = mean_squared;
-		for (int i=0; i<n_gpool; ++i)
-			index[i] = i;
-		shuffle(index);
-		int k = 0;
-		for (int i=0; i<n_repro; ++i)
+		if (cost[index[k]] < cost[index[k+1]])
 		{
-			if (cost[index[k]] < cost[index[k+1]])
-			{
-				population[i] = bin[index[k]];
-				mean_squared[i] = cost[index[k]];
-			}
-			else
-			{
-				population[i] = bin[index[k+1]];
-				mean_squared[i] = cost[index[k+1]];
-			}
-			k += 2;
+			population[i] = bin[index[k]];
+			mean_squared[i] = cost[index[k]];
 		}
-	});
-	tour.join();
+		else
+		{
+			population[i] = bin[index[k+1]];
+			mean_squared[i] = cost[index[k+1]];
+		}
+		k += 2;
+	}
 }
 
 //performs uniform crossover reproduction on the chromosomes
