@@ -64,7 +64,7 @@ double anneal::Gaussian_move(double mean, double error, int accepted)
 }
 	
 //returns neighboring state
-std::vector<std::vector<double> > anneal::neighbor(std::vector<std::vector<double> > state0,double error,int accepted)
+std::vector<std::vector<double> > anneal::neighbor(std::vector<std::vector<double> > &state0,double error,int accepted)
 {
 	int ni = state0.size();
 	int nj = state0[0].size();
@@ -92,30 +92,30 @@ double anneal::rand_double()
 }
 
 //runs simulated annealing to make sure predictions are in the accepted range
-std::vector<std::vector<double> > anneal::run(std::vector<std::vector<double> > old_state)
+void anneal::run(std::vector<std::vector<double> > &old_state)
 {
 	double old_energy = Mean_square_error(GetResiduals(dependent,independent,old_state));
 	double initial_temperature = FLT_MAX*old_energy;
 	double old_temperature = initial_temperature;
 	int accepted = 0;
 	int iterations = 0;
-	
+
 	while (old_temperature > 0 && iterations < 10000)
 	{
-		
+	
 		std::vector<std::vector<double> > new_state = neighbor(old_state,error,accepted);
 		double new_energy = Mean_square_error(GetResiduals(dependent,independent,new_state));
-		
+	
 		double delta_energy = new_energy-old_energy;
 		double new_temperature = Temperature(old_temperature,accepted);
-		
+	
 		double P = rand_double();
 		double probability;
 		if (delta_energy < 0)
 			probability = 1.f;
 		else
 			probability = exp(-delta_energy/new_temperature);
-		
+	
 		if (P < probability)
 		{
 			old_state = new_state;
@@ -125,5 +125,4 @@ std::vector<std::vector<double> > anneal::run(std::vector<std::vector<double> > 
 		}
 		iterations++;
 	}
-	return old_state;
 }
