@@ -253,29 +253,24 @@ void genetic::reproduction(std::vector<std::vector<std::bitset<384> > > &populat
 void genetic::rankChromosomes(std::vector<std::vector<std::bitset<384> > > &population, std::vector<double> &mean_squared)
 {
 	std::vector<std::vector<std::bitset<384> > > bin = population;
-	
 	std::vector<double> cost(n_gpool);
 	std::vector<int> index(n_gpool);
-	auto regression = [&bin,&cost,&index] (int a, int b)
+	std::vector<std::thread> eval_threads;
+	
+	for (int i=0; i<n_gpool; ++i)
 	{
-		std::vector<std::vector<double> > param(4,std::vector<double> (6));
-		for (int i=a; i<b; ++i)
+		eval_threads.push_back(std::thread([&bin,&cost,&index,i]()
 		{
-			param = decode(bin[i]);
+			std::vector<std::vector<double> > param = decode(bin[i]);
 			std::vector<double> residuals = GetResiduals(dependent,independent,param);
 			cost[i] = Mean_square_error(residuals);
 			index[i] = i;
-		}
-	};
-	
-	std::thread eval1(regression,0,n_gpool/4);
-	std::thread eval2(regression,n_gpool/4,n_gpool/2);
-	std::thread eval3(regression,n_gpool/2,3*n_gpool/4);
-	std::thread eval4(regression,3*n_gpool/4,n_gpool);
-	eval1.join();
-	eval2.join();
-	eval3.join();
-	eval4.join();
+		}));
+	}
+	std::for_each(eval_threads.begin(),eval_threads.end(),[](std::thread &t)
+	{
+		t.join();
+	});
 	
 	quicksort_index(cost,index,0,cost.size());
 	for (int i=0; i<n_gpool; ++i)
