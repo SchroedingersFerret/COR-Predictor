@@ -25,13 +25,14 @@
 
 #include <iostream>
 #include <fstream>
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <float.h>
 #include <time.h>
 #include <bitset>
 #include <stdlib.h>
 #include <thread>
+#include <algorithm>
 
 class COR_predictor
 {
