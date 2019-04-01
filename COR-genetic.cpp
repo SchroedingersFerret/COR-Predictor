@@ -287,9 +287,13 @@ void genetic::mutate(std::vector<std::vector<std::bitset<384> > > &population,st
 	int nj = population[0][0].size();
 	int m_elite = (int) (n_elite*ni*nj*pm+1);
 	int m_normal = (int) (n_normal*ni*nj*pm+1);
-	auto f1 = [&population,&mean_squared,&ni,&nj] (int a, int b)
+	
+	std::vector<std::thread> elite_threads;
+	std::vector<std::thread> normal_threads;
+	
+	for(int i=0; i<m_elite; ++i)
 	{
-		for (int i=a; i<b; ++i)
+		elite_threads.push_back(std::thread([&population,&mean_squared,&ni,&nj,i]()
 		{
 			int i_elite = rand() % n_elite;
 			int i_mutate = rand() % ni;
@@ -304,27 +308,29 @@ void genetic::mutate(std::vector<std::vector<std::bitset<384> > > &population,st
 				population[i_elite] = bin;
 				mean_squared[i_elite] = cost;
 			}
-		}
-	};
+		}));
+	}
 	
-	auto f2 = [&population,&mean_squared,&ni,&nj] (int a, int b)
+	for(int i=0; i<m_normal; ++i)
 	{
-		for (int i=a; i<b; ++i)
+		normal_threads.push_back(std::thread([&population,&mean_squared,&ni,&nj,i]()
 		{
 			int i_gpool = rand() % n_normal + n_elite;
 			int i_mutate = rand() % ni;
 			int j_mutate = rand() % nj;
 			population[i_gpool][i_mutate].flip(j_mutate);
-		}
-	};
-	std::thread mu_elite1(f1,0,m_elite/2);
-	std::thread mu_elite2(f1,m_elite/2,m_elite);
-	std::thread mu_normal1(f2,0,m_normal/2);
-	std::thread mu_normal2(f2,m_normal/2,m_normal);
-	mu_normal1.join();
-	mu_normal2.join();
-	mu_elite1.join();
-	mu_elite2.join();
+		}));
+	}
+	
+	std::for_each(normal_threads.begin(),normal_threads.end(),[](std::thread &t)
+	{
+		t.join();
+	});
+	
+	std::for_each(elite_threads.begin(),elite_threads.end(),[](std::thread &t)
+	{
+		t.join();
+	});
 }
 
 //returns the percentage of differing bits between two chromosomes
