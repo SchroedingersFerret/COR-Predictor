@@ -211,26 +211,39 @@ void genetic::reproduction(std::vector<std::vector<std::bitset<384> > > &populat
 	int n_repro2 = n_repro/2;
 	int nl = population[0].size();
 	int nm = population[0][0].size();
+	
 	for (int i=n_repro; i<n_repro+n_repro2; ++i)
 	{
-		//perform reproduction ( ͡° ͜ʖ ͡°)
-		for (int l=0; l<nl; ++l)
+		auto f = [&population,&k,&n_repro2,&i](int a, int b, int d, int c)
 		{
-			for (int m=0; m<nm; ++m)
+			//perform reproduction ( ͡° ͜ʖ ͡°)
+			for (int l=a; l<b; ++l)
 			{
-				bool parent = rand_bool();
-				if (parent)
+				for (int m=d; m<c; ++m)
 				{
-					population[i][l][m] = population[k][l][m];
-					population[i+n_repro2][l][m] = population[k+1][l][m];
-				}
-				if (!parent)
-				{
-					population[i][l][m] = population[k+1][l][m];
-					population[i+n_repro2][l][m] = population[k][l][m];
+					bool parent = rand_bool();
+					if (parent)
+					{
+						population[i][l][m] = population[k][l][m];
+						population[i+n_repro2][l][m] = population[k+1][l][m];
+					}
+					if (!parent)
+					{
+						population[i][l][m] = population[k+1][l][m];
+						population[i+n_repro2][l][m] = population[k][l][m];
+					}
 				}
 			}
-		}
+		};
+		std::thread reproduce1(f,0,nl/2,0,nm/2);
+		std::thread reproduce2(f,0,nl/2,nm/2,nm);
+		std::thread reproduce3(f,nl/2,nl,0,nm/2);
+		std::thread reproduce4(f,nl/2,nl,nm/2,nm);
+		reproduce1.join();
+		reproduce2.join();
+		reproduce3.join();
+		reproduce4.join();
+		k += 2;
 	}
 
 	rankChromosomes(population,mean_squared);
