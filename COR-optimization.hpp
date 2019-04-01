@@ -140,7 +140,7 @@ std::vector<double> optimization::GetResiduals(std::vector<double> &y, std::vect
 	{
 		double yi = f(x[i],param);
 		residuals[i] = y[i]-yi;
-		if (isnan(residuals[i]))
+		if (std::isnan(residuals[i]))
 			residuals[i] = 1.f;
 	}
 	return residuals;
