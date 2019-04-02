@@ -188,20 +188,29 @@ void genetic::tournament(std::vector<std::vector<std::bitset<384> > > &populatio
 		index[i] = i;
 	shuffle(index);
 	int k = 0;
+	std::vector<std::thread> tourney_threads;
 	for (int i=0; i<n_repro; ++i)
 	{
-		if (cost[index[k]] < cost[index[k+1]])
+		tourney_threads.push_back(std::thread([&population,&bin,&mean_squared,&cost,&index,i,k]()
 		{
-			population[i] = bin[index[k]];
-			mean_squared[i] = cost[index[k]];
-		}
-		else
-		{
-			population[i] = bin[index[k+1]];
-			mean_squared[i] = cost[index[k+1]];
-		}
+			
+			if (cost[index[k]] < cost[index[k+1]])
+			{
+				population[i] = bin[index[k]];
+				mean_squared[i] = cost[index[k]];
+			}
+			else
+			{
+				population[i] = bin[index[k+1]];
+				mean_squared[i] = cost[index[k+1]];
+			}
+		}));
 		k += 2;
 	}
+	std::for_each(tourney_threads.begin(),tourney_threads.end(),[](std::thread &t)
+	{
+		t.join();
+	});
 }
 
 //performs uniform crossover reproduction on the chromosomes
@@ -211,41 +220,39 @@ void genetic::reproduction(std::vector<std::vector<std::bitset<384> > > &populat
 	int n_repro2 = n_repro/2;
 	int nl = population[0].size();
 	int nm = population[0][0].size();
+	std::vector<std::thread> repro_threads;
 	
 	for (int i=n_repro; i<n_repro+n_repro2; ++i)
 	{
-		auto f = [&population,&k,&n_repro2,&i](int a, int b, int d, int c)
+		repro_threads.push_back(std::thread([&population,&n_repro2,&nl,&nm,i,k]()
 		{
 			//perform reproduction ( ͡° ͜ʖ ͡°)
-			for (int l=a; l<b; ++l)
+			for (int l=0; l<nl; ++l)
 			{
-				for (int m=d; m<c; ++m)
+				for (int m=0; m<nm; ++m)
 				{
-					bool parent = rand_bool();
-					if (parent)
-					{
-						population[i][l][m] = population[k][l][m];
-						population[i+n_repro2][l][m] = population[k+1][l][m];
-					}
-					if (!parent)
-					{
-						population[i][l][m] = population[k+1][l][m];
-						population[i+n_repro2][l][m] = population[k][l][m];
-					}
+				
+						bool parent = rand_bool();
+						if (parent)
+						{
+							population[i][l][m] = population[k][l][m];
+							population[i+n_repro2][l][m] = population[k+1][l][m];
+						}
+						if (!parent)
+						{
+							population[i][l][m] = population[k+1][l][m];
+							population[i+n_repro2][l][m] = population[k][l][m];
+						}
+				
 				}
 			}
-		};
-		std::thread reproduce1(f,0,nl/2,0,nm/2);
-		std::thread reproduce2(f,0,nl/2,nm/2,nm);
-		std::thread reproduce3(f,nl/2,nl,0,nm/2);
-		std::thread reproduce4(f,nl/2,nl,nm/2,nm);
-		reproduce1.join();
-		reproduce2.join();
-		reproduce3.join();
-		reproduce4.join();
+		}));
 		k += 2;
 	}
-
+	std::for_each(repro_threads.begin(),repro_threads.end(),[](std::thread &t)
+	{
+		t.join();
+	});
 	rankChromosomes(population,mean_squared);
 }
 
