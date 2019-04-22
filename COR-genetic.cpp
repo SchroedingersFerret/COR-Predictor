@@ -98,20 +98,25 @@ std::vector<std::vector<double> > genetic::Get_random_parameters()
 //partition function for quicksort_index
 int genetic::partition(std::vector<double> &cost, std::vector<int> &index, int low, int high)
 {
-	double pivot = cost[low];
-	int i = low;
-	for (int j=low+1; j<high; ++j)
+	double pivot = cost[(int)(low + high)/2];
+	int i = low - 1;
+	int j = high + 1;
+	for(;;)
 	{
-		if (cost[j] <= pivot)
-		{
+		do
 			i++;
-			std::swap(cost[i],cost[j]);
-			std::swap(index[i],index[j]);
-		}
+		while (cost[i] < pivot);
+		
+		do 
+			j--;
+		while (cost[j] > pivot);
+		
+		if (i >= j)
+			return j;
+		
+		std::swap(cost[i],cost[j]);
+		std::swap(index[i],index[j]);
 	}
-	std::swap(cost[i],cost[low]);
-	std::swap(index[i],index[low]);
-	return i;
 }
 
 //quicksorts indices by cost
@@ -193,17 +198,18 @@ void genetic::tournament(std::vector<std::vector<std::bitset<384> > > &populatio
 	{
 		tourney_threads.push_back(std::thread([&population,&bin,&mean_squared,&cost,&index,i,k]()
 		{
-			
 			if (cost[index[k]] < cost[index[k+1]])
 			{
-				population[i] = bin[index[k]];
-				mean_squared[i] = cost[index[k]];
+				bin[index[k+1]] = bin[index[k]];
+				cost[index[k+1]] = cost[index[k]];
 			}
 			else
 			{
-				population[i] = bin[index[k+1]];
-				mean_squared[i] = cost[index[k+1]];
+				bin[index[k]] = bin[index[k+1]];
+				cost[index[k]] = cost[index[k+1]];
 			}
+			population[i] = bin[index[k]];
+			mean_squared[i] = cost[index[k]];
 		}));
 		k += 2;
 	}
@@ -263,6 +269,7 @@ void genetic::rankChromosomes(std::vector<std::vector<std::bitset<384> > > &popu
 	std::vector<double> cost(n_gpool);
 	std::vector<int> index(n_gpool);
 	std::vector<std::thread> eval_threads;
+	
 	
 	for (int i=0; i<n_gpool; ++i)
 	{
