@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <thread>
 #include <algorithm>
+#include <cuda_runtime.h>
+#include <cuda.h>
 
 class COR_predictor
 {
