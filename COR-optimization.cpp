@@ -1,5 +1,5 @@
 /*
- * COR-optimization.hpp
+ * COR-optimization.cpp
  *
  *  Copyright 2019
  *      J. Ball (SchroedingersFerret)
@@ -19,9 +19,6 @@
 //
 //   You should have received a copy of the GNU General Public License
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
-    
-#ifndef COR_OPTIMIZATION_HPP_
-#define COR_OPTIMIZATION_HPP_
 
 class optimization : public COR_predictor
 {
@@ -33,43 +30,6 @@ class optimization : public COR_predictor
 		static double f(std::vector<double> &x, std::vector<std::vector<double> > &param);	
 		static std::vector<double> GetResiduals(std::vector<double> &y, std::vector<std::vector<double> > &x, std::vector<std::vector<double> > &param);
 		static double Mean_square_error(std::vector<double> residuals);
-};
-
-class genetic : public optimization
-{
-	private:
-		static std::vector<std::bitset<384> > encode(std::vector<std::vector<double> > &param);
-		static std::vector<std::vector<double> > decode(std::vector<std::bitset<384> > &w);
-		static int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
-		static void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
-		static std::vector<std::vector<double> > Get_random_parameters();
-		static void Initiate(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared);
-		static void shuffle(std::vector<int> &index);
-		static void tournament(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared);
-		static void reproduction(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared);
-		static void mutate(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared);
-		static void rankChromosomes(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared);
-		static double percentDifference(std::vector<std::bitset<384> > &individual1, std::vector<std::bitset<384> > &individual2);
-		static double getDiversity(std::vector<std::vector<std::bitset<384> > > &population);
-		static void DivergenceError();
-		static void BottleneckError();
-		static void CheckDiversity(std::vector<std::vector<std::bitset<384> > > &population);
-		static void show_mean_squared(double mean_squared);
-	public:
-		static void run();
-};
-
-class anneal : private optimization
-{
-	private:
-		static int partition(std::vector<double> &value, int low, int high);
-		static void quicksort_x(std::vector<double> &value, int low, int high);
-		static double Gaussian_move(double mean, double std_dev,int accepted);
-		static std::vector<std::vector<double> > neighbor(std::vector<std::vector<double> > &state0,double error,int accepted);
-		static double Temperature(double new_energy, int accepted);
-		static double rand_double();
-	public:
-		static void run(std::vector<std::vector<double> > &old_state);
 };
 
 //generates a random double between -1.0 and 1.0
@@ -157,5 +117,3 @@ double optimization::Mean_square_error(std::vector<double> residuals)
 	}
 	return sum/n_data;
 }
-
-#endif /* COR_OPTIMIZATION_HPP_ */
