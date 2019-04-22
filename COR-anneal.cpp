@@ -20,16 +20,16 @@
 //   You should have received a copy of the GNU General Public License
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
     
-//quicksorts values by cost
-void anneal::quicksort_x(std::vector<double> &value, int low, int high)
+class anneal : private optimization
 {
-	if (low < high)
-	{
-		int pi = partition(value, low, high);
-		quicksort_x(value, low, pi);
-		quicksort_x(value, pi+1, high);
-	}
-}
+	private:
+		static double Gaussian_move(double mean, double std_dev,int accepted);
+		static std::vector<std::vector<double> > neighbor(std::vector<std::vector<double> > &state0,double error,int accepted);
+		static double Temperature(double new_energy, int accepted);
+		static double rand_double();
+	public:
+		static void run(std::vector<std::vector<double> > &old_state);
+};
 
 //returns a random number from an gaussian distribution
 double anneal::Gaussian_move(double mean, double error, int accepted)
