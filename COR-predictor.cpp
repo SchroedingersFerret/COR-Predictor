@@ -287,14 +287,11 @@ bool COR_predictor::Set_more(char input)
 	{
 		case 'y':
 		case 'Y':	return true;
-					break;
 
 		case 'n':
 		case 'N':	return false;
-					break;
 
 		default	:	throw "Invalid input\nEnter y/n: ";
-					break;
 	}
 }
 
@@ -330,13 +327,10 @@ bool COR_predictor::Set_quit(char input)
 	switch(input)
 	{
 		case '1':	return false;
-					break;
 
 		case '2':	return true;
-					break;
 
 		default	:	throw "Invalid input\nEnter 1/2: ";
-					break;
 	}
 }
 
@@ -388,15 +382,12 @@ bool COR_predictor::Set_random(char input)
 	{
 		case 'y':
 		case 'Y':	return false;
-					break;
 
 		case 'n':
 		case 'N':	std::cout << "Initiating with random values. (Convergence will take longer)\n\n";
 					return true;
-					break;
 
 		default	:	throw "Invalid input\nEnter y/n: ";
-					break;
 	}
 }
 
@@ -461,14 +452,11 @@ bool COR_predictor::Set_write(char input)
 	{
 		case 'y':
 		case 'Y':	return true;
-					break;
 
 		case 'n':
 		case 'N':	return false;
-					break;
 
 		default	:	throw "\nInvalid input\nEnter y/n: ";
-					break;
 	}
 }
 	
@@ -604,41 +592,28 @@ void COR_predictor::Show_main_menu()
 	std::cout << "Enter '4' to quit.\n\n";
 }
 
-//sets mode of operation
-struct COR_predictor::Mode
+//sets bool quit
+int COR_predictor::Set_mode(char input)
 {
-	public:
-	enum Enum
+	switch(input)
 	{
-		ENTER = 1,
-		OPTIMIZE = 2,
-		PREDICT = 3,
-		QUIT = 4
-	};
-	Enum e;
-	void Set_mode(char input)
-	{
-		switch(input)
-		{
-			case '1' :  e = ENTER;
-						break;
-			case '2' : 	e = OPTIMIZE;
-						break;
-			case '3' : 	e = PREDICT;
-						break;
-			case '4' : 	e = QUIT;
-						break;
-			default : 	throw "Invalid input. Please enter '1','2','3', or '4'.\n\n";
-						break;
-		}
+		case '1' :  return 1;
+
+		case '2' : 	return 2;
+
+		case '3' : 	return 3;
+
+		case '4' : 	return 4;
+
+		default : 	throw "Invalid input. Please enter '1','2','3', or '4'.\n\n";
 	}
-};		
+}	
 
 //user can select mode of operation from the main menu
 void COR_predictor::Main_menu()
 {
 	Show_main_menu();
-	Mode mode;
+	int mode;
 	char input;
 	while(std::cin.get(input))
 	{
@@ -647,7 +622,7 @@ void COR_predictor::Main_menu()
 		std::cout << "\n";
 		try
 		{
-			mode.Set_mode(input);
+			mode = Set_mode(input);
 		}
 		catch(const char * s)
 		{
@@ -657,16 +632,16 @@ void COR_predictor::Main_menu()
 		break;
 	}
 		
-	switch(mode.e)
+	switch(mode)
 	{
-		case mode.Enum::ENTER 	 :  Enter();
-									break;
-		case mode.Enum::OPTIMIZE :	Optimize();
-									break;
-		case mode.Enum::PREDICT  :  Predict();
-									break;
-		case mode.Enum::QUIT   	 : 	quit_cor = true;
-									break;	
-		default : break;
+		case 1 	:  	Enter();
+					break;
+		case 2  :	Optimize();
+					break;
+		case 3  :  	Predict();
+					break;
+		case 4  :  	quit_cor = true;
+					break;	
+		default : 	break;
 	}
 }
