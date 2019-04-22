@@ -20,23 +20,6 @@
 //   You should have received a copy of the GNU General Public License
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
     
-//partition function for quicksort_x
-int anneal::partition(std::vector<double> &value, int low, int high)
-{
-	double pivot = value[low];
-	int i = low;
-	for (int j=low+1; j<high; ++j)
-	{
-		if (value[j] <= pivot)
-		{
-			i++;
-			std::swap(value[i],value[j]);
-		}
-	}
-	std::swap(value[i],value[low]);
-	return i;
-}
-
 //quicksorts values by cost
 void anneal::quicksort_x(std::vector<double> &value, int low, int high)
 {
