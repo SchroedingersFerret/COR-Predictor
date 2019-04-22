@@ -59,7 +59,7 @@ class COR_predictor
 		static std::vector<double> pGet_independent();
 		static void Predict();
 		static void Show_main_menu();
-		struct Mode;
+		static int Set_mode(char input);
 		
 	public:
 		//initial population size
