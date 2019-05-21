@@ -21,7 +21,7 @@
 //   along with COR-Predictor.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "COR-predictor.hpp"
-#include "COR-optimization.hpp"
+#include "COR-optimization.cpp"
 #include "COR-anneal.cpp"
 #include "COR-genetic.cpp"
 #include "COR-predictor.cpp"
