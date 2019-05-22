@@ -1,6 +1,6 @@
 COR Predictor 
 =============
-version 0.5-beta
+version 0.5.1-beta
 
 By: J. Ball (SchroedingersFerret)
 
@@ -59,22 +59,22 @@ COR Predictor is built by using CMake to generate a makefile which can be used t
 
 * Gnu+Linux
 
-In the terminal, navigate to the build folder in the parent directory `~/COR-Predictor-0.5-beta` with the command 
-`~ $ cd COR-Predictor-0.5-beta/build`
+In the terminal, navigate to the build folder in the parent directory `~/COR-Predictor-0.5.1-beta` with the command 
+`~ $ cd COR-Predictor-0.5.1-beta/build`
 
 Run cmake with the command 
 
-`~/COR-Predictor-0.5-beta/build $ cmake ..`
+`~/COR-Predictor-0.5.1-beta/build $ cmake ..`
 
 and make the executable with 
 
-`~/COR-Predictor-0.5-beta/build $ make`
+`~/COR-Predictor-0.5.1-beta/build $ make`
 
 The executable will be created in the build directory. 
 
 Run COR Predictor by entering the command
 
-`~/COR-Predictor-0.5-beta/build $ ./COR-Predictor`
+`~/COR-Predictor-0.5.1-beta/build $ ./COR-Predictor`
 
 * Windows
 
@@ -137,7 +137,7 @@ Running COR Predictor
 
 COR Predictor is run by entering the command 
 
-`~/COR-Predictor-0.5-beta/build $ ./COR-Predictor`
+`~/COR-Predictor-0.5.1-beta/build $ ./COR-Predictor`
 
 while in the build folder. 
 
