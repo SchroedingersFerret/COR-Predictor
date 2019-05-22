@@ -121,7 +121,7 @@ std::vector<std::vector<double> > genetic::Get_random_parameters()
 }
 
 //partition function for quicksort_index
-int genetic::partition(std::vector<double> &cost, std::vector<int> &index, int low, int high)
+int genetic::partition(std::vector<double> &cost, std::vector<int> &index, int &low, int &high)
 {
 	double pivot = cost[(int)(low + high)/2];
 	int i = low - 1;
