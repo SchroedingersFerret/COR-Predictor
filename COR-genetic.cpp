@@ -25,7 +25,7 @@ class genetic : public optimization
 	private:
 		static std::vector<std::bitset<384> > encode(std::vector<std::vector<double> > &param);
 		static std::vector<std::vector<double> > decode(std::vector<std::bitset<384> > &w);
-		static int partition(std::vector<double> &cost, std::vector<int> &index, int low, int high);
+		static int partition(std::vector<double> &cost, std::vector<int> &index, int &low, int &high);
 		static void quicksort_index(std::vector<double> &cost, std::vector<int> &index, int low, int high);
 		static std::vector<std::vector<double> > Get_random_parameters();
 		static void Initiate(std::vector<std::vector<std::bitset<384> > > &population,std::vector<double> &mean_squared);
@@ -188,7 +188,7 @@ void genetic::Initiate(std::vector<std::vector<std::bitset<384> > > &population,
 		bin[i] = encode(param);
 	}
 	//sorts population by cost
-	quicksort_index(cost,index,0,cost.size());
+	quicksort_index(cost,index,0,cost.size()-1);
 	for (int i=0; i<n_gpool; ++i)
 	{
 		mean_squared[i] = cost[i];
@@ -311,7 +311,7 @@ void genetic::rankChromosomes(std::vector<std::vector<std::bitset<384> > > &popu
 		t.join();
 	});
 	
-	quicksort_index(cost,index,0,cost.size());
+	quicksort_index(cost,index,0,cost.size()-1);
 	for (int i=0; i<n_gpool; ++i)
 	{
 		mean_squared[i] = cost[i];
